@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+pydantic>=2.0
+langgraph
+langchain
+langchain-groq
+langchain-openai
+pytest
+spacy<3.8.0
+scispacy==0.5.4
+python-dotenv
+sqlalchemy>=2.0
+transformers>=4.40.0
+sentencepiece>=0.2.0
+langdetect>=1.0.9
+torch

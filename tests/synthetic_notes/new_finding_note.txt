@@ -1,0 +1,10 @@
+ADMISSION SUMMARY:
+65 yo female presenting with acute worsening shortness of breath, productive cough with yellow sputum, and fever of 101.2F. Chest X-ray showed right lower lobe infiltrate consistent with community-acquired pneumonia. PMH significant for Type 2 Diabetes and Hyperlipidemia. 
+
+HOSPITAL COURSE:
+Admitted to medicine and started on IV Ceftriaxone and Azithromycin. Patient defervesced by hospital day 2. Oxygen requirement was 2L nasal cannula, weaned to room air by day 4. Blood cultures negative. Follow-up CXR showed improving infiltrate. Blood sugars well controlled on sliding scale insulin.
+
+DISCHARGE DIAGNOSES AND PLAN:
+1. Right lower lobe community-acquired pneumonia - resolved clinically, completed 5 day course of antibiotics.
+2. Type 2 Diabetes Mellitus - stable. Note: patient developed mild acute kidney injury during hospitalization (Creatinine bumped to 1.6), currently resolving. 
+3. New onset atrial fibrillation - rate controlled on Metoprolol. Patient to follow up with cardiology in 2 weeks for consideration of anticoagulation.

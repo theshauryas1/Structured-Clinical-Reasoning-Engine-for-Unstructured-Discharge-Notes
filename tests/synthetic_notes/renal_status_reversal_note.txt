@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+70 yo male admitted with dehydration and acute kidney injury. Creatinine on arrival was 1.8.
+
+HOSPITAL COURSE:
+Received IV fluids with improving urine output. Acute kidney injury resolving and creatinine improved to 1.1 by hospital day 2.
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Acute kidney injury worsening with creatinine bumped to 2.1 on the day of discharge.
+2. Dehydration improved.
+Nephrology follow-up requested.

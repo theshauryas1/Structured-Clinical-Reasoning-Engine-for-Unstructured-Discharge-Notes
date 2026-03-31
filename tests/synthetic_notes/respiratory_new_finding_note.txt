@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+59 yo female admitted for left leg cellulitis with fever. No cough or shortness of breath on admission.
+
+HOSPITAL COURSE:
+Cellulitis improved on IV antibiotics and fever resolved.
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Left leg cellulitis - improved.
+2. Acute respiratory failure requiring 2L oxygen continuously at discharge.
+Home oxygen arranged before discharge.

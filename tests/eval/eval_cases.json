@@ -1,0 +1,27 @@
+[
+  {
+    "note_file": "missing_symptom_note.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": ["missing_symptom"]
+  },
+  {
+    "note_file": "new_finding_note.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": ["new_finding"]
+  },
+  {
+    "note_file": "status_reversal_note.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": ["status_reversal"]
+  },
+  {
+    "note_file": "resolved_no_contradiction_note.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "renal_status_reversal_note.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": ["status_reversal"]
+  }
+]

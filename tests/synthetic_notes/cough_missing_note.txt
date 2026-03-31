@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+66 yo female admitted with productive cough, shortness of breath, and community-acquired pneumonia.
+
+HOSPITAL COURSE:
+Started on IV antibiotics and bronchodilator therapy. Shortness of breath improved significantly by hospital day 3.
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Community-acquired pneumonia - improving.
+2. Shortness of breath resolved on room air.
+Patient discharged home with oral antibiotics.

@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+74 yo male admitted with fever, productive cough, and community-acquired pneumonia. Initial chest X-ray showed left basilar infiltrate.
+
+HOSPITAL COURSE:
+Started on IV antibiotics with improvement in cough and oxygenation over 48 hours.
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Community-acquired pneumonia - improved clinically.
+2. Productive cough minimal at discharge.
+Patient discharged home on oral antibiotics and close PCP follow-up.

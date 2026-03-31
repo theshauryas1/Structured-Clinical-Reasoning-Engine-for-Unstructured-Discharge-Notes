@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+64 yo male admitted with fever, productive cough, and community-acquired pneumonia.
+
+HOSPITAL COURSE:
+Improved on IV antibiotics with resolution of fever and better oxygen saturation.
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Community-acquired pneumonia - improved clinically.
+2. Developed mild acute kidney injury with creatinine bumped to 1.7 during hospitalization.
+Repeat labs requested with PCP in 3 days.

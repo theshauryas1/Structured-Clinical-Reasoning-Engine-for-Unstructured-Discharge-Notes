@@ -1,0 +1,11 @@
+ADMISSION SUMMARY:
+68 yo female presenting with fever, productive cough, and shortness of breath. Chest X-ray showed right lower lobe pneumonia. 
+
+HOSPITAL COURSE:
+Started on IV Ceftriaxone and Azithromycin. Fever resolved by hospital day 2. Cough improved steadily and oxygen was weaned off by hospital day 3. 
+
+DISCHARGE SUMMARY:
+Discharge Diagnoses:
+1. Community-acquired pneumonia - clinically improved.
+2. Fever resolved.
+3. Cough minimal and shortness of breath resolved on room air.
