@@ -63,8 +63,10 @@ class Hypothesis(BaseModel):
     rank: int
     score: float = Field(ge=0.0, le=1.0)
     retrieval_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    ranking_score: float = Field(default=0.0)
     rationale: str
     retrieved_contexts: List[str] = Field(default_factory=list)
+    ranking_features: dict = Field(default_factory=dict)
     supporting_evidence: List[Evidence] = Field(default_factory=list)
 
 
@@ -92,6 +94,13 @@ class ConfidenceScore(BaseModel):
     sampled_scores: List[float] = Field(default_factory=list)
 
 
+class PolicyDecision(BaseModel):
+    step: str
+    action: str
+    reason: str
+    features: dict = Field(default_factory=dict)
+
+
 class AuditStep(BaseModel):
     agent: str
     summary: str
@@ -106,4 +115,5 @@ class NoteReport(BaseModel):
     contradiction_flags: List[Contradiction] = Field(default_factory=list)
     confidence_scores: List[ConfidenceScore] = Field(default_factory=list)
     reasoning_trace: List[AuditStep] = Field(default_factory=list)
+    orchestration_trace: List[PolicyDecision] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)

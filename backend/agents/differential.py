@@ -2,6 +2,7 @@ from typing import Dict, List
 
 from backend.agents.models import AuditStep, ClinicalEvent, Evidence, Hypothesis
 from backend.ingestion.timeline_builder import build_timeline
+from backend.ml.ranking_model import rerank_hypotheses
 from backend.rag.retriever import retrieve_context
 
 DIFFERENTIAL_RULES = [
@@ -147,15 +148,17 @@ def generate_differentials(state: dict) -> dict:
         )
 
     candidates.sort(key=lambda item: item.score, reverse=True)
-    ranked: List[Hypothesis] = []
+    seeded_ranked: List[Hypothesis] = []
     for index, candidate in enumerate(candidates[:5], start=1):
-        ranked.append(candidate.model_copy(update={"rank": index}))
+        seeded_ranked.append(candidate.model_copy(update={"rank": index}))
+
+    ranked = rerank_hypotheses(seeded_ranked, timeline)
 
     trace = list(state.get("reasoning_trace", []))
     trace.append(
         AuditStep(
             agent="differential_agent",
-            summary=f"Generated {len(ranked)} ranked differentials from structured evidence plus local retrieval.",
+            summary=f"Generated {len(ranked)} ranked differentials from structured evidence, local retrieval, and learned reranking.",
             details=retrieval_trace[:5] or [hypothesis.name for hypothesis in ranked],
         )
     )

@@ -1,0 +1,11 @@
+{
+  "bias": 0.0,
+  "weights": {
+    "discharge_support": -0.075,
+    "support_count": 0.7667,
+    "context_count": 0.25,
+    "base_score": 0.288,
+    "section_coverage": 0.4166,
+    "retrieval_score": 0.0
+  }
+}

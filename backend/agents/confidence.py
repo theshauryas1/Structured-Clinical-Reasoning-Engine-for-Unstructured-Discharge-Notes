@@ -1,12 +1,8 @@
-import math
 from statistics import mean, pvariance
 from typing import Dict, List
 
 from backend.agents.models import AuditStep, ConfidenceScore, Hypothesis
-
-
-def _sigmoid(value: float) -> float:
-    return 1 / (1 + math.exp(-value))
+from backend.ml.confidence_calibration import predict_probability
 
 
 def _section_coverage(hypothesis: Hypothesis) -> float:
@@ -26,20 +22,8 @@ def _feature_vector(hypothesis: Hypothesis, contradiction_count: int) -> Dict[st
         "section_coverage": coverage,
         "rank_bonus": rank_bonus,
         "contradiction_penalty": contradiction_penalty,
+        "ranking_score": max(0.0, min(1.0, hypothesis.ranking_score / 3)),
     }
-
-
-def _predict_probability(features: Dict[str, float]) -> float:
-    linear = (
-        -0.35
-        + (2.1 * features["base_score"])
-        + (1.1 * features["retrieval_score"])
-        + (0.7 * features["support_count"])
-        + (0.45 * features["section_coverage"])
-        + (0.4 * features["rank_bonus"])
-        - (0.9 * features["contradiction_penalty"])
-    )
-    return round(_sigmoid(linear), 3)
 
 
 def _sample_predictions(features: Dict[str, float], passes: int = 8) -> List[float]:
@@ -49,7 +33,7 @@ def _sample_predictions(features: Dict[str, float], passes: int = 8) -> List[flo
         perturbed = dict(features)
         perturbed["retrieval_score"] = max(0.0, min(1.0, perturbed["retrieval_score"] + adjustment))
         perturbed["base_score"] = max(0.0, min(1.0, perturbed["base_score"] - (adjustment / 2)))
-        samples.append(_predict_probability(perturbed))
+        samples.append(predict_probability(perturbed))
     return samples
 
 
@@ -82,7 +66,7 @@ def score_confidence(state: dict) -> dict:
     trace.append(
         AuditStep(
             agent="confidence_agent",
-            summary=f"Scored confidence for {len(confidence_scores)} hypotheses using a feature-calibrated model.",
+            summary=f"Scored confidence for {len(confidence_scores)} hypotheses using a learned calibration model.",
             details=[f"{score.hypothesis}:{score.confidence}" for score in confidence_scores],
         )
     )

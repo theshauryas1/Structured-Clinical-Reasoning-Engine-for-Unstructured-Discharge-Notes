@@ -1,0 +1,6 @@
+{
+  "retrieve_again_threshold": 3.511,
+  "rerank_min_candidates": 2,
+  "run_contradiction": true,
+  "run_confidence": true
+}

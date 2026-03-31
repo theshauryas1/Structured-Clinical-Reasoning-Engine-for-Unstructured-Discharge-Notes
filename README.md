@@ -17,7 +17,7 @@ An end-to-end MVP for extracting structured clinical timelines from discharge no
 - `backend/agents/meta.py`
   Assembles the final structured JSON report and reasoning trace.
 - `backend/agents/graph.py`
-  Wires the full multi-agent pipeline in LangGraph.
+  Wires the full multi-agent pipeline in LangGraph, including policy checkpoints around ranking and contradiction analysis.
 - `backend/main.py`
   FastAPI app with `POST /ingest`, `GET /report/{note_id}`, and `GET /health`.
 - `backend/translation_layer.py`
@@ -30,6 +30,12 @@ An end-to-end MVP for extracting structured clinical timelines from discharge no
   Ten realistic synthetic notes plus API/pipeline tests.
 - `scripts/evaluate.py`
   Runs a small benchmark suite and reports top-k differential accuracy plus contradiction precision/recall/F1.
+- `scripts/train_reranker.py`
+  Learns simple reranker weights from labeled evaluation cases.
+- `scripts/train_confidence_calibrator.py`
+  Learns calibration weights from observed hypothesis correctness.
+- `scripts/train_orchestration_policy.py`
+  Learns a retrieval threshold for post-contradiction orchestration decisions.
 
 ## Backend quick start
 
@@ -96,13 +102,32 @@ This prints:
 - contradiction precision
 - contradiction recall
 - contradiction F1
+- mean reciprocal rank
+- Brier score
+
+## Training hooks
+
+```bash
+cd clinical-reasoning-engine
+.\venv\Scripts\python.exe scripts/train_reranker.py
+.\venv\Scripts\python.exe scripts/train_confidence_calibrator.py
+.\venv\Scripts\python.exe scripts/train_orchestration_policy.py
+```
+
+Saved artifacts:
+
+- `backend/ml/artifacts/reranker_weights.json`
+- `backend/ml/artifacts/confidence_calibrator.json`
+- `backend/ml/artifacts/orchestration_policy.json`
 
 ## Notes
 
 - The project prefers scispaCy `en_core_sci_sm`; in this workspace that model is not installed, so tests run against the deterministic fallback extractor.
 - The confidence agent is implemented as a deterministic feature-calibrated scorer so the system remains locally testable while exposing interpretable confidence features.
 - The differential agent now uses a local retrieval layer over a small curated clinical knowledge base, which is intentionally lightweight and demo-oriented rather than exhaustive.
-- The confidence agent uses a feature-calibrated scoring model over differential score, retrieval strength, support count, section coverage, and contradiction burden.
+- The differential stack now includes a learned reranker over structured and retrieval-backed features.
+- The confidence agent uses a learned feature-calibrated scoring model over differential score, retrieval strength, support count, section coverage, rank, and contradiction burden.
+- The orchestration layer is policy-driven and currently logs decisions around reranking, contradiction analysis, and additional retrieval opportunities.
 - The multilingual layer uses Helsinki-NLP MarianMT models via HuggingFace and supports auto-detection through `langdetect`.
 - Translation is best-effort and general-domain. Clinical terminology may be imperfect for some European-language notes, so this should be called a demo-safe capability rather than production-grade medical translation.
 - Translation models are lazy-loaded and cached per language, but they are still large and may increase memory pressure on low-tier deployments.

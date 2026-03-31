@@ -11,6 +11,9 @@ from pydantic import BaseModel, Field
 
 from backend.agents.graph import run_reasoning_pipeline
 from backend.ingestion.ner_extractor import EXTRACTOR_BACKEND, EXTRACTOR_WARNINGS
+from backend.ml.confidence_calibration import CALIBRATOR_PATH
+from backend.ml.ranking_model import RERANKER_PATH
+from backend.orchestration.policy import POLICY_PATH
 from backend.translation_layer import (
     LANGDETECT_AVAILABLE,
     SUPPORTED,
@@ -104,6 +107,11 @@ def health() -> dict:
         "translation_models_available": TRANSFORMERS_AVAILABLE,
         "language_detection_available": LANGDETECT_AVAILABLE,
         "supported_languages": ["en", *SUPPORTED.keys()],
+        "learned_artifacts": {
+            "reranker": RERANKER_PATH.exists(),
+            "confidence_calibrator": CALIBRATOR_PATH.exists(),
+            "orchestration_policy": POLICY_PATH.exists(),
+        },
     }
 
 

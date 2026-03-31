@@ -41,6 +41,7 @@ def test_pipeline_execution(filename, expected_types):
     assert report.note_id == filename
     assert report.timeline.sections
     assert report.reasoning_trace
+    assert report.orchestration_trace
 
     found_types = {contradiction.type.value for contradiction in report.contradiction_flags}
     if expected_types:
@@ -49,6 +50,12 @@ def test_pipeline_execution(filename, expected_types):
         assert report.contradiction_flags == []
 
     _assert_evidence_offsets(report)
+    if report.differentials:
+        assert "base_score" in report.differentials[0].ranking_features
+        assert report.differentials[0].ranking_score != 0
+    if report.confidence_scores:
+        assert report.confidence_scores[0].model_type == "feature_calibrated"
+        assert "ranking_score" in report.confidence_scores[0].features
 
 
 def test_ingest_and_report_routes():
@@ -112,3 +119,5 @@ def test_evaluation_harness_returns_metrics():
     assert metrics["summary"]["num_cases"] >= 5
     assert "top1_accuracy" in metrics["summary"]
     assert "contradiction_f1" in metrics["summary"]
+    assert "mrr" in metrics["summary"]
+    assert "brier_score" in metrics["summary"]

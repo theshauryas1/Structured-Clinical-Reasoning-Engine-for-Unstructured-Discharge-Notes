@@ -1,0 +1,12 @@
+{
+  "bias": 0.0,
+  "weights": {
+    "retrieval_score": 0.0,
+    "contradiction_penalty": 0.0,
+    "ranking_score": 0.2849,
+    "section_coverage": 0.4166,
+    "base_score": 0.288,
+    "rank_bonus": 0.45,
+    "support_count": 0.7667
+  }
+}

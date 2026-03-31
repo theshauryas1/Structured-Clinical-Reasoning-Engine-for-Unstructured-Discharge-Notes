@@ -26,6 +26,7 @@ def synthesize_report(state: dict) -> dict:
         contradiction_flags=state.get("contradictions", []),
         confidence_scores=state.get("confidence_scores", []),
         reasoning_trace=trace,
+        orchestration_trace=state.get("orchestration_trace", []),
         warnings=timeline.warnings,
     )
 

@@ -199,6 +199,21 @@ export default function App() {
                 ))}
               </div>
             </section>
+
+            <section className="report-panel">
+              <div className="panel-header">
+                <h2>Orchestration policy</h2>
+              </div>
+              <div className="trace-list">
+                {presentationReport.orchestration_trace?.map((step, index) => (
+                  <article className="trace-card" key={`${step.step}-${step.action}-${index}`}>
+                    <span className="trace-agent">{step.step}</span>
+                    <h3>{step.action}</h3>
+                    <p>{step.reason}</p>
+                  </article>
+                )) || <p className="empty-state">No orchestration actions recorded.</p>}
+              </div>
+            </section>
           </>
         ) : null}
       </main>

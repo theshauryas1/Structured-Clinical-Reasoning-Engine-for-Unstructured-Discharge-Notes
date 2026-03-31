@@ -20,6 +20,8 @@ def evaluate() -> dict:
     contradiction_tp = 0
     contradiction_fp = 0
     contradiction_fn = 0
+    reciprocal_rank_sum = 0.0
+    brier_components = []
 
     for case in cases:
         note_text = (NOTES_DIR / case["note_file"]).read_text(encoding="utf-8")
@@ -34,10 +36,16 @@ def evaluate() -> dict:
         top3_hit = expected_top in predicted_names[:3]
         top1_hits += int(top1_hit)
         top3_hits += int(top3_hit)
+        if expected_top in predicted_names:
+            reciprocal_rank_sum += 1 / (predicted_names.index(expected_top) + 1)
 
         contradiction_tp += len(predicted_types & expected_types)
         contradiction_fp += len(predicted_types - expected_types)
         contradiction_fn += len(expected_types - predicted_types)
+
+        for score in report.confidence_scores:
+            target = 1.0 if score.hypothesis == expected_top else 0.0
+            brier_components.append((score.confidence - target) ** 2)
 
         results.append(
             {
@@ -61,9 +69,11 @@ def evaluate() -> dict:
             "num_cases": total_cases,
             "top1_accuracy": round(top1_hits / total_cases, 3),
             "top3_accuracy": round(top3_hits / total_cases, 3),
+            "mrr": round(reciprocal_rank_sum / total_cases, 3),
             "contradiction_precision": round(precision, 3),
             "contradiction_recall": round(recall, 3),
             "contradiction_f1": round(f1, 3),
+            "brier_score": round(sum(brier_components) / max(1, len(brier_components)), 3),
         },
     }
 
