@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS reasoning_outputs (
     contradictions_json JSONB NOT NULL DEFAULT '[]'::jsonb,
     confidence_json JSONB NOT NULL DEFAULT '[]'::jsonb,
     reasoning_trace_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    orchestration_trace_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    report_json JSONB NOT NULL DEFAULT '{}'::jsonb,
     generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

@@ -37,7 +37,7 @@ An end-to-end MVP for extracting structured clinical timelines from discharge no
 - `scripts/train_orchestration_policy.py`
   Learns a retrieval threshold for post-contradiction orchestration decisions.
 
-## Backend quick start
+## Local development
 
 ```bash
 cd clinical-reasoning-engine
@@ -69,7 +69,7 @@ Multilingual flow:
 - Build a translated `display_report` for the UI
 - Keep the original structured report in English for stable internal semantics
 
-## Frontend quick start
+Frontend in a second terminal:
 
 ```bash
 cd clinical-reasoning-engine/frontend
@@ -79,7 +79,56 @@ npm run dev
 
 Optional env var:
 
-- `VITE_API_BASE=http://localhost:8000`
+- `VITE_API_URL=http://localhost:8000`
+
+## Deployment
+
+Recommended stack for this repo:
+
+- Backend: Railway
+- Frontend: Vercel
+- Database: Neon Postgres
+
+### Railway backend
+
+Set Railway root directory to the repo root and deploy the included `Dockerfile` or `railway.json`.
+
+Required Railway env vars:
+
+- `DATABASE_URL`: Neon connection string
+- `CLINICAL_REASONING_CORS_ORIGINS`: your Vercel frontend URL, for example `https://your-app.vercel.app`
+- `PORT`: provided by Railway automatically
+
+Start command:
+
+```bash
+uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+```
+
+### Vercel frontend
+
+Set the Vercel project root to `frontend/`.
+
+Required Vercel env var:
+
+- `VITE_API_URL=https://your-railway-backend.up.railway.app`
+
+The included `frontend/vercel.json` is ready for a Vite static deploy.
+
+### Neon database
+
+Create a Neon Postgres database and paste its pooled connection string into Railway as `DATABASE_URL`.
+
+Schema notes:
+
+- The app now persists reports through SQLAlchemy.
+- If `DATABASE_URL` is missing locally, it falls back to SQLite at `backend/db/reports.sqlite3`.
+
+### Local fallback
+
+```powershell
+.\start.ps1
+```
 
 ## Test suite
 

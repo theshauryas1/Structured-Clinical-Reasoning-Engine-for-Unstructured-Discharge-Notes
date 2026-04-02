@@ -28,6 +28,8 @@ class ReasoningOutput(Base):
     contradictions_json: Mapped[list] = mapped_column(JSON, default=list)
     confidence_json: Mapped[list] = mapped_column(JSON, default=list)
     reasoning_trace_json: Mapped[list] = mapped_column(JSON, default=list)
+    orchestration_trace_json: Mapped[list] = mapped_column(JSON, default=list)
+    report_json: Mapped[dict] = mapped_column(JSON, default=dict)
     generated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     note: Mapped[ClinicalNote] = relationship(back_populates="reasoning_output")

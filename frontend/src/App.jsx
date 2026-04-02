@@ -1,222 +1,282 @@
-import { startTransition, useDeferredValue, useState } from "react";
-
-import ConfidenceBars from "./components/ConfidenceBars";
-import ContradictionCards from "./components/ContradictionCards";
-import TimelineView from "./components/TimelineView";
+import { useState } from "react";
 
 const SAMPLE_NOTE = `ADMISSION SUMMARY:
-65 yo female presenting with acute worsening shortness of breath, productive cough with yellow sputum, and fever of 101.2F. Chest X-ray showed right lower lobe infiltrate consistent with community-acquired pneumonia.
+Patient admitted with fever, cough, and shortness of breath.
 
 HOSPITAL COURSE:
-Admitted to medicine and started on IV Ceftriaxone and Azithromycin. Oxygen requirement was 2L nasal cannula, weaned to room air by day 4.
+Fever resolved after 3 days on ceftriaxone and azithromycin. Oxygen requirement improved.
 
 DISCHARGE DIAGNOSES AND PLAN:
-1. Right lower lobe community-acquired pneumonia - resolved clinically.
-2. New onset atrial fibrillation - rate controlled on Metoprolol.
-3. Developed mild acute kidney injury during hospitalization.`;
+Community-acquired pneumonia improved clinically. New onset atrial fibrillation noted during admission.`;
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
-const LANGUAGE_OPTIONS = [
-  { value: "auto", label: "Auto-detect" },
-  { value: "en", label: "English" },
-  { value: "de", label: "Deutsch" },
-  { value: "fr", label: "Français" },
-  { value: "nl", label: "Nederlands" },
-  { value: "es", label: "Español" },
-];
+const API_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
 
-export default function App() {
-  const [noteText, setNoteText] = useState(SAMPLE_NOTE);
-  const [language, setLanguage] = useState("auto");
-  const [report, setReport] = useState(null);
-  const [status, setStatus] = useState("idle");
+const styles = {
+  page: {
+    fontFamily: "Arial, sans-serif",
+    background: "#f8f9fa",
+    minHeight: "100vh",
+    padding: "24px 16px 48px",
+  },
+  shell: {
+    maxWidth: "860px",
+    margin: "0 auto",
+  },
+  title: {
+    marginBottom: "8px",
+  },
+  disclaimer: {
+    color: "#b42318",
+    fontWeight: 700,
+    marginBottom: "20px",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "220px",
+    padding: "14px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    resize: "vertical",
+    background: "#ffffff",
+    marginBottom: "14px",
+  },
+  buttonRow: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: "18px",
+  },
+  primaryButton: {
+    padding: "10px 15px",
+    background: "#007bff",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    padding: "10px 15px",
+    background: "#e9ecef",
+    color: "#111827",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+  section: {
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: "10px",
+    padding: "18px",
+    marginTop: "18px",
+  },
+  timelineWrap: {
+    borderLeft: "3px solid #007bff",
+    paddingLeft: "12px",
+  },
+  timelineItem: {
+    padding: "12px 0",
+    borderBottom: "1px solid #e5e7eb",
+  },
+  timelineEvent: {
+    marginTop: "8px",
+    padding: "10px",
+    background: "#f8fafc",
+    borderRadius: "8px",
+  },
+  contradictionCard: {
+    background: "#ffe6e6",
+    padding: "12px",
+    marginBottom: "10px",
+    borderLeft: "5px solid red",
+    borderRadius: "6px",
+  },
+  diagnosisCard: {
+    padding: "12px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "8px",
+    marginBottom: "10px",
+    background: "#ffffff",
+  },
+  confidenceTrack: {
+    background: "#ddd",
+    borderRadius: "5px",
+    overflow: "hidden",
+    marginTop: "6px",
+  },
+  confidenceFill: {
+    background: "#28a745",
+    color: "white",
+    padding: "5px",
+    minWidth: "52px",
+    whiteSpace: "nowrap",
+  },
+  meta: {
+    color: "#475467",
+    marginTop: "6px",
+  },
+  error: {
+    color: "#b42318",
+    marginTop: "8px",
+  },
+};
+
+function formatSectionName(value) {
+  if (!value) {
+    return "Unknown";
+  }
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function App() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const deferredReport = useDeferredValue(report);
-  const presentationReport = deferredReport?.display_report || deferredReport;
-  const contradictionCount = presentationReport?.contradiction_flags?.length || 0;
+  const report = output?.display_report || output;
+  const timeline = report?.timeline?.sections || [];
+  const contradictions = report?.contradiction_flags || [];
+  const differentials = report?.differentials || [];
+  const confidenceScores = report?.confidence_scores || [];
 
-  const summary = presentationReport
-    ? {
-        noteId: presentationReport.note_id,
-        differentials: presentationReport.differentials?.length || 0,
-        contradictions: contradictionCount,
-        confidenceScores: presentationReport.confidence_scores?.length || 0,
-      }
-    : null;
+  const confidenceByName = new Map();
+  for (const item of confidenceScores) {
+    confidenceByName.set(item.hypothesis, item.confidence);
+  }
 
-  async function handleAnalyze(event) {
-    event.preventDefault();
-    setStatus("loading");
+  const analyze = async () => {
+    if (!input.trim()) {
+      setError("Please paste a clinical note before analyzing.");
+      return;
+    }
+
+    setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/ingest`, {
+      const res = await fetch(`${API_URL}/ingest`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note_text: noteText, lang: language }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ note_text: input }),
       });
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.detail || "Unable to process note.");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || "Error processing request");
       }
 
-      const payload = await response.json();
-      startTransition(() => {
-        setReport(payload);
-      });
-      setStatus("ready");
-    } catch (submissionError) {
-      setStatus("error");
-      setError(submissionError.message);
+      setOutput(data);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Error processing request");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  const loadSample = () => {
+    setInput(SAMPLE_NOTE);
+    setError("");
+  };
 
   return (
-    <div className="page-shell">
-      <div className="page-backdrop" />
-      <main className="dashboard">
-        <section className="hero">
-          <p className="eyebrow">Audit-ready clinical NLP</p>
-          <h1>Clinical reasoning engine for discharge-note contradictions</h1>
-          <p className="lede">
-            Paste a discharge summary, run the reasoning graph, and inspect the
-            structured timeline, contradiction evidence, confidence trace, and
-            translated presentation layer.
-          </p>
-        </section>
+    <div style={styles.page}>
+      <div style={styles.shell}>
+        <h1 style={styles.title}>Clinical Reasoning Engine</h1>
+        <p style={styles.disclaimer}>
+          This is a research/demo system and not for clinical use.
+        </p>
 
-        <section className="workspace">
-          <form className="composer" onSubmit={handleAnalyze}>
-            <div className="panel-header">
-              <h2>Input note</h2>
-              <span className={`status-pill status-${status}`}>{status}</span>
+        <textarea
+          rows={10}
+          style={styles.textarea}
+          placeholder="Paste clinical discharge note..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+
+        <div style={styles.buttonRow}>
+          <button onClick={analyze} disabled={!input.trim() || loading} style={styles.primaryButton}>
+            {loading ? "Analyzing..." : "Analyze"}
+          </button>
+          <button onClick={loadSample} type="button" style={styles.secondaryButton}>
+            Try Sample
+          </button>
+        </div>
+
+        {loading && <p>Processing clinical note...</p>}
+        {error ? <p style={styles.error}>{error}</p> : null}
+
+        {report ? (
+          <div style={{ marginTop: "30px" }}>
+            <div style={styles.section}>
+              <h2>Timeline</h2>
+              {timeline.length ? (
+                <div style={styles.timelineWrap}>
+                  {timeline.map((section) => (
+                    <div key={section.name} style={styles.timelineItem}>
+                      <strong>{formatSectionName(section.name)}</strong>
+                      <div style={styles.meta}>{section.text}</div>
+                      {section.events?.map((event, index) => (
+                        <div key={`${event.start}-${event.end}-${index}`} style={styles.timelineEvent}>
+                          <strong>{event.text}</strong>
+                          <div>
+                            {event.label} | {event.status}
+                          </div>
+                          <div style={styles.meta}>{event.sentence_text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>No timeline returned.</p>
+              )}
             </div>
-            <label className="field-label" htmlFor="language-select">
-              Input language
-            </label>
-            <select
-              id="language-select"
-              className="language-select"
-              value={language}
-              onChange={(event) => setLanguage(event.target.value)}
-            >
-              {LANGUAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+
+            <div style={styles.section}>
+              <h2>Contradictions</h2>
+              {contradictions.length === 0 && <p>No contradictions found.</p>}
+              {contradictions.map((item, index) => (
+                <div key={`${item.type}-${item.entity}-${index}`} style={styles.contradictionCard}>
+                  <strong>{item.type}</strong>
+                  <p style={{ marginBottom: 0 }}>{item.description}</p>
+                </div>
               ))}
-            </select>
-            <textarea
-              className="note-input"
-              value={noteText}
-              onChange={(event) => setNoteText(event.target.value)}
-              placeholder="Paste a raw discharge note here..."
-            />
-            <div className="composer-actions">
-              <button className="primary-button" type="submit">
-                Run reasoning pipeline
-              </button>
-              <button
-                className="ghost-button"
-                type="button"
-                onClick={() => setNoteText(SAMPLE_NOTE)}
-              >
-                Load sample
-              </button>
             </div>
-            {error ? <p className="error-text">{error}</p> : null}
-          </form>
 
-          <div className="overview-grid">
-            <div className="metric-card">
-              <span className="metric-label">Extractor</span>
-              <strong>{presentationReport?.timeline?.extractor_backend || "not run"}</strong>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Contradictions</span>
-              <strong>{summary?.contradictions ?? 0}</strong>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Differentials</span>
-              <strong>{summary?.differentials ?? 0}</strong>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Confidence sets</span>
-              <strong>{summary?.confidenceScores ?? 0}</strong>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Display language</span>
-              <strong>{deferredReport?.display_language || "en"}</strong>
+            <div style={styles.section}>
+              <h2>Differential Diagnosis</h2>
+              {differentials.length ? (
+                differentials.map((item, index) => {
+                  const confidence = confidenceByName.get(item.name) ?? item.score ?? 0;
+                  const percentage = `${Math.max(0, Math.min(100, confidence * 100))}%`;
+                  return (
+                    <div key={`${item.name}-${index}`} style={styles.diagnosisCard}>
+                      <strong>{item.name}</strong>
+                      {item.rationale ? <div style={styles.meta}>{item.rationale}</div> : null}
+                      <div style={styles.confidenceTrack}>
+                        <div style={{ ...styles.confidenceFill, width: percentage }}>
+                          {(confidence * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No differential diagnosis returned.</p>
+              )}
             </div>
           </div>
-        </section>
-
-        {presentationReport ? (
-          <>
-            <section className="report-panel">
-              <div className="panel-header">
-                <h2>Timeline</h2>
-                <span className="subtle-copy">
-                  Note ID: {summary?.noteId} • Source: {deferredReport?.source_language || "en"} • Pipeline:{" "}
-                  {deferredReport?.pipeline_language || "en"}
-                </span>
-              </div>
-              <TimelineView timeline={presentationReport.timeline} />
-            </section>
-
-            <section className="report-grid">
-              <div className="report-panel">
-                <div className="panel-header">
-                  <h2>Contradiction flags</h2>
-                </div>
-                <ContradictionCards contradictions={presentationReport.contradiction_flags} />
-              </div>
-
-              <div className="report-panel">
-                <div className="panel-header">
-                  <h2>Confidence scores</h2>
-                </div>
-                <ConfidenceBars
-                  confidenceScores={presentationReport.confidence_scores}
-                  differentials={presentationReport.differentials}
-                />
-              </div>
-            </section>
-
-            <section className="report-panel">
-              <div className="panel-header">
-                <h2>Reasoning trace</h2>
-              </div>
-              <div className="trace-list">
-                {presentationReport.reasoning_trace.map((step) => (
-                  <article className="trace-card" key={step.agent}>
-                    <span className="trace-agent">{step.agent}</span>
-                    <h3>{step.summary}</h3>
-                    <p>{step.details.join(" • ")}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="report-panel">
-              <div className="panel-header">
-                <h2>Orchestration policy</h2>
-              </div>
-              <div className="trace-list">
-                {presentationReport.orchestration_trace?.map((step, index) => (
-                  <article className="trace-card" key={`${step.step}-${step.action}-${index}`}>
-                    <span className="trace-agent">{step.step}</span>
-                    <h3>{step.action}</h3>
-                    <p>{step.reason}</p>
-                  </article>
-                )) || <p className="empty-state">No orchestration actions recorded.</p>}
-              </div>
-            </section>
-          </>
         ) : null}
-      </main>
+      </div>
     </div>
   );
 }
+
+export default App;

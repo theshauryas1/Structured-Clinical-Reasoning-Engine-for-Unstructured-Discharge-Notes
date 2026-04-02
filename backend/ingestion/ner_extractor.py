@@ -1,7 +1,13 @@
 import re
 from typing import Dict, List, Tuple
 
-import spacy
+try:
+    import spacy
+
+    SPACY_IMPORT_ERROR = None
+except Exception as exc:  # pragma: no cover - environment-dependent import failure
+    spacy = None
+    SPACY_IMPORT_ERROR = exc
 
 CLINICAL_PATTERNS: List[Tuple[str, str]] = [
     (r"\b(left-sided weakness|right-sided weakness|weakness)\b", "SYMPTOM"),
@@ -58,6 +64,8 @@ DOMAIN_KEYWORDS = {
 
 
 def _build_blank_pipeline():
+    if spacy is None:
+        raise RuntimeError("spaCy is unavailable.")
     nlp = spacy.blank("en")
     if "sentencizer" not in nlp.pipe_names:
         nlp.add_pipe("sentencizer")
@@ -65,16 +73,55 @@ def _build_blank_pipeline():
 
 
 try:
+    if spacy is None:
+        raise RuntimeError(f"spaCy import failed: {SPACY_IMPORT_ERROR}")
     nlp = spacy.load("en_core_sci_sm")
     if "sentencizer" not in nlp.pipe_names:
         nlp.add_pipe("sentencizer")
     EXTRACTOR_BACKEND = "scispacy"
     EXTRACTOR_WARNINGS: List[str] = []
-except OSError:
-    nlp = _build_blank_pipeline()
+except Exception as exc:
+    if spacy is not None:
+        nlp = _build_blank_pipeline()
+    else:
+        # Minimal fallback so the service still runs when native spaCy wheels are unavailable.
+        class _FallbackSentence:
+            def __init__(self, text: str, start: int, end: int) -> None:
+                self.text = text
+                self.start_char = start
+                self.end_char = end
+
+        class _FallbackDoc:
+            def __init__(self, text: str) -> None:
+                self.text = text
+                self.ents: List[object] = []
+                self.sents = self._split_sentences()
+
+            def _split_sentences(self) -> List["_FallbackSentence"]:
+                matches = list(re.finditer(r"[^.!?\n]+[.!?]?", self.text))
+                sentences: List[_FallbackSentence] = []
+                for match in matches:
+                    raw_text = match.group(0)
+                    stripped = raw_text.strip()
+                    if not stripped:
+                        continue
+                    leading_ws = len(raw_text) - len(raw_text.lstrip())
+                    trailing_ws = len(raw_text) - len(raw_text.rstrip())
+                    start = match.start() + leading_ws
+                    end = match.end() - trailing_ws
+                    sentences.append(_FallbackSentence(stripped, start, end))
+                return sentences or [_FallbackSentence(self.text, 0, len(self.text))]
+
+        class _FallbackNLP:
+            pipe_names: List[str] = ["fallback_sentencizer"]
+
+            def __call__(self, text: str) -> "_FallbackDoc":
+                return _FallbackDoc(text)
+
+        nlp = _FallbackNLP()
     EXTRACTOR_BACKEND = "rules"
     EXTRACTOR_WARNINGS = [
-        "en_core_sci_sm not installed; using deterministic clinical phrase matcher fallback.",
+        f"Using deterministic clinical phrase matcher fallback because spaCy/scispaCy is unavailable: {exc}",
     ]
 
 
