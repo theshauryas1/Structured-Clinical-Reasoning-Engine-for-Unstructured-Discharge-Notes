@@ -61,6 +61,21 @@ class IngestRequest(BaseModel):
     note_text: str = Field(min_length=1, description="Raw discharge note text.")
     note_id: Optional[str] = Field(default=None, description="Optional client-supplied note ID.")
     lang: str = Field(default="auto", description="Input language: auto, en, de, fr, nl, or es.")
+    display_lang: str = Field(
+        default="auto",
+        description="Display language for translated report: auto, en, de, fr, nl, or es.",
+    )
+
+
+def _resolve_display_language(requested_lang: str, source_language: str) -> str:
+    normalized = (requested_lang or "auto").strip().lower()
+    if normalized == "auto":
+        return source_language
+    if normalized not in {"en", *SUPPORTED.keys()}:
+        raise TranslationLayerError(
+            f"Unsupported display language '{requested_lang}'. Supported values: auto, en, de, fr, nl, es."
+        )
+    return normalized
 
 
 def initialize_database() -> None:
@@ -161,19 +176,20 @@ def ingest_note(payload: IngestRequest) -> dict:
     try:
         source_language, language_warnings = detect_input_language(payload.note_text, payload.lang)
         english_note = translate(payload.note_text, src_lang=source_language, to_english=True)
+        display_language = _resolve_display_language(payload.display_lang, source_language)
     except TranslationLayerError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     report = run_reasoning_pipeline(english_note, note_id=note_id)
     report_payload = report.model_dump(mode="json")
     report_payload["warnings"] = [*report_payload.get("warnings", []), *language_warnings]
-    display_report = build_display_report(report_payload, source_language)
+    display_report = build_display_report(report_payload, display_language)
 
     response_payload = {
         **report_payload,
         "source_language": source_language,
         "pipeline_language": "en",
-        "display_language": source_language,
+        "display_language": display_language,
         "display_report": display_report,
         "translated_input_text": english_note,
     }
@@ -182,10 +198,25 @@ def ingest_note(payload: IngestRequest) -> dict:
 
 
 @app.get("/report/{note_id}")
-def fetch_report(note_id: str) -> dict:
+def fetch_report(note_id: str, display_lang: str = "auto") -> dict:
     report = get_report(note_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report not found.")
+    try:
+        target_language = _resolve_display_language(display_lang, report.get("source_language", "en"))
+    except TranslationLayerError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if target_language == report.get("display_language"):
+        return report
+
+    english_report = {
+        key: value
+        for key, value in report.items()
+        if key not in {"source_language", "pipeline_language", "display_language", "display_report", "translated_input_text"}
+    }
+    report["display_language"] = target_language
+    report["display_report"] = build_display_report(english_report, target_language)
     return report
 
 

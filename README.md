@@ -63,7 +63,8 @@ Example request:
 {
   "note_id": "demo-note",
   "note_text": "ADMISSION SUMMARY:\nPatient admitted with fever and cough...",
-  "lang": "auto"
+  "lang": "auto",
+  "display_lang": "fr"
 }
 ```
 
@@ -72,8 +73,9 @@ Multilingual flow:
 - Input note in `de`, `fr`, `nl`, or `es`
 - Translate to English at the API edge
 - Run the full reasoning pipeline in English
-- Build a translated `display_report` for the UI
+- Build a translated `display_report` for the requested display language
 - Keep the original structured report in English for stable internal semantics
+- Localize the frontend chrome in `en`, `de`, `fr`, `nl`, and `es`
 
 Frontend in a second terminal:
 

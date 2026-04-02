@@ -10,14 +10,175 @@ DISCHARGE DIAGNOSES AND PLAN:
 Community-acquired pneumonia improved clinically. New onset atrial fibrillation noted during admission.`;
 
 const API_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
-const LANGUAGE_OPTIONS = [
-  { value: "auto", label: "Auto-detect" },
-  { value: "en", label: "English" },
-  { value: "de", label: "Deutsch" },
-  { value: "fr", label: "Francais" },
-  { value: "nl", label: "Nederlands" },
-  { value: "es", label: "Espanol" },
-];
+const SUPPORTED_LANGUAGES = ["en", "de", "fr", "nl", "es"];
+
+const TRANSLATIONS = {
+  en: {
+    appTitle: "Clinical Reasoning Engine",
+    disclaimer: "This is a research/demo system and not for clinical use.",
+    notePlaceholder: "Paste clinical discharge note...",
+    inputLanguage: "Input language",
+    displayLanguage: "Display language",
+    autoDetect: "Auto-detect",
+    analyze: "Analyze",
+    analyzing: "Analyzing...",
+    trySample: "Try Sample",
+    processing: "Processing clinical note...",
+    emptyInputError: "Please paste a clinical note before analyzing.",
+    requestError: "Error processing request",
+    languageFlow: "Language flow",
+    input: "Input",
+    pipeline: "Pipeline",
+    display: "Display",
+    translatedInput: "Translated input used for reasoning",
+    timeline: "Timeline",
+    contradictions: "Contradictions",
+    differentialDiagnosis: "Differential Diagnosis",
+    noTimeline: "No timeline returned.",
+    noContradictions: "No contradictions found.",
+    noDifferential: "No differential diagnosis returned.",
+    unknown: "Unknown",
+    languageLabels: {
+      en: "English",
+      de: "German",
+      fr: "French",
+      nl: "Dutch",
+      es: "Spanish",
+    },
+  },
+  de: {
+    appTitle: "Klinische Reasoning-Engine",
+    disclaimer: "Dies ist ein Forschungs-/Demo-System und nicht fuer den klinischen Einsatz bestimmt.",
+    notePlaceholder: "Klinischen Entlassungsbericht einfuegen...",
+    inputLanguage: "Eingabesprache",
+    displayLanguage: "Anzeigesprache",
+    autoDetect: "Automatisch erkennen",
+    analyze: "Analysieren",
+    analyzing: "Analysiere...",
+    trySample: "Beispiel laden",
+    processing: "Klinische Notiz wird verarbeitet...",
+    emptyInputError: "Bitte fuegen Sie vor der Analyse eine klinische Notiz ein.",
+    requestError: "Fehler bei der Verarbeitung der Anfrage",
+    languageFlow: "Sprachfluss",
+    input: "Eingabe",
+    pipeline: "Pipeline",
+    display: "Anzeige",
+    translatedInput: "Fuer die Analyse verwendete Uebersetzung",
+    timeline: "Zeitverlauf",
+    contradictions: "Widersprueche",
+    differentialDiagnosis: "Differenzialdiagnosen",
+    noTimeline: "Keine Zeitleiste zurueckgegeben.",
+    noContradictions: "Keine Widersprueche gefunden.",
+    noDifferential: "Keine Differenzialdiagnose zurueckgegeben.",
+    unknown: "Unbekannt",
+    languageLabels: {
+      en: "Englisch",
+      de: "Deutsch",
+      fr: "Franzoesisch",
+      nl: "Niederlaendisch",
+      es: "Spanisch",
+    },
+  },
+  fr: {
+    appTitle: "Moteur de raisonnement clinique",
+    disclaimer: "Il s'agit d'un systeme de recherche/demo et non destine a un usage clinique.",
+    notePlaceholder: "Collez la note de sortie clinique...",
+    inputLanguage: "Langue d'entree",
+    displayLanguage: "Langue d'affichage",
+    autoDetect: "Detection automatique",
+    analyze: "Analyser",
+    analyzing: "Analyse en cours...",
+    trySample: "Charger un exemple",
+    processing: "Traitement de la note clinique...",
+    emptyInputError: "Veuillez coller une note clinique avant l'analyse.",
+    requestError: "Erreur lors du traitement de la requete",
+    languageFlow: "Flux de langue",
+    input: "Entree",
+    pipeline: "Pipeline",
+    display: "Affichage",
+    translatedInput: "Traduction utilisee pour le raisonnement",
+    timeline: "Chronologie",
+    contradictions: "Contradictions",
+    differentialDiagnosis: "Diagnostic differentiel",
+    noTimeline: "Aucune chronologie retournee.",
+    noContradictions: "Aucune contradiction detectee.",
+    noDifferential: "Aucun diagnostic differentiel retourne.",
+    unknown: "Inconnu",
+    languageLabels: {
+      en: "Anglais",
+      de: "Allemand",
+      fr: "Francais",
+      nl: "Neerlandais",
+      es: "Espagnol",
+    },
+  },
+  nl: {
+    appTitle: "Klinische redeneerengine",
+    disclaimer: "Dit is een onderzoeks-/demosysteem en niet bedoeld voor klinisch gebruik.",
+    notePlaceholder: "Plak klinische ontslagnotitie...",
+    inputLanguage: "Invoertaal",
+    displayLanguage: "Weergavetaal",
+    autoDetect: "Automatisch detecteren",
+    analyze: "Analyseren",
+    analyzing: "Bezig met analyseren...",
+    trySample: "Voorbeeld laden",
+    processing: "Klinische notitie wordt verwerkt...",
+    emptyInputError: "Plak eerst een klinische notitie voordat je analyseert.",
+    requestError: "Fout bij het verwerken van de aanvraag",
+    languageFlow: "Taalstroom",
+    input: "Invoer",
+    pipeline: "Pipeline",
+    display: "Weergave",
+    translatedInput: "Vertaalde invoer gebruikt voor de redenering",
+    timeline: "Tijdlijn",
+    contradictions: "Tegenstrijdigheden",
+    differentialDiagnosis: "Differentialdiagnose",
+    noTimeline: "Geen tijdlijn ontvangen.",
+    noContradictions: "Geen tegenstrijdigheden gevonden.",
+    noDifferential: "Geen differentiaaldiagnose ontvangen.",
+    unknown: "Onbekend",
+    languageLabels: {
+      en: "Engels",
+      de: "Duits",
+      fr: "Frans",
+      nl: "Nederlands",
+      es: "Spaans",
+    },
+  },
+  es: {
+    appTitle: "Motor de razonamiento clinico",
+    disclaimer: "Este es un sistema de investigacion/demostracion y no para uso clinico.",
+    notePlaceholder: "Pegue la nota clinica de alta...",
+    inputLanguage: "Idioma de entrada",
+    displayLanguage: "Idioma de visualizacion",
+    autoDetect: "Deteccion automatica",
+    analyze: "Analizar",
+    analyzing: "Analizando...",
+    trySample: "Cargar ejemplo",
+    processing: "Procesando la nota clinica...",
+    emptyInputError: "Pegue una nota clinica antes de analizar.",
+    requestError: "Error al procesar la solicitud",
+    languageFlow: "Flujo de idioma",
+    input: "Entrada",
+    pipeline: "Pipeline",
+    display: "Visualizacion",
+    translatedInput: "Entrada traducida usada para el razonamiento",
+    timeline: "Cronologia",
+    contradictions: "Contradicciones",
+    differentialDiagnosis: "Diagnostico diferencial",
+    noTimeline: "No se devolvio ninguna cronologia.",
+    noContradictions: "No se encontraron contradicciones.",
+    noDifferential: "No se devolvio ningun diagnostico diferencial.",
+    unknown: "Desconocido",
+    languageLabels: {
+      en: "Ingles",
+      de: "Aleman",
+      fr: "Frances",
+      nl: "Neerlandes",
+      es: "Espanol",
+    },
+  },
+};
 
 const styles = {
   page: {
@@ -148,9 +309,9 @@ const styles = {
   },
 };
 
-function formatSectionName(value) {
+function formatSectionName(value, translations) {
   if (!value) {
-    return "Unknown";
+    return translations.unknown;
   }
   return value
     .split("_")
@@ -158,12 +319,35 @@ function formatSectionName(value) {
     .join(" ");
 }
 
+function getTranslations(language) {
+  return TRANSLATIONS[language] || TRANSLATIONS.en;
+}
+
+function buildLanguageOptions(translations) {
+  return [
+    { value: "auto", label: translations.autoDetect },
+    ...SUPPORTED_LANGUAGES.map((value) => ({
+      value,
+      label: translations.languageLabels[value],
+    })),
+  ];
+}
+
 function App() {
   const [input, setInput] = useState("");
   const [language, setLanguage] = useState("auto");
+  const [displayLanguage, setDisplayLanguage] = useState("en");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const uiLanguage = output?.display_language || displayLanguage;
+  const t = getTranslations(uiLanguage);
+  const inputLanguageOptions = buildLanguageOptions(t);
+  const displayLanguageOptions = SUPPORTED_LANGUAGES.map((value) => ({
+    value,
+    label: t.languageLabels[value],
+  }));
 
   const report = output?.display_report || output;
   const timeline = report?.timeline?.sections || [];
@@ -178,7 +362,7 @@ function App() {
 
   const analyze = async () => {
     if (!input.trim()) {
-      setError("Please paste a clinical note before analyzing.");
+      setError(t.emptyInputError);
       return;
     }
 
@@ -191,18 +375,18 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ note_text: input, lang: language }),
+        body: JSON.stringify({ note_text: input, lang: language, display_lang: displayLanguage }),
       });
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.detail || "Error processing request");
+        throw new Error(data.detail || t.requestError);
       }
 
       setOutput(data);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Error processing request");
+      setError(err.message || t.requestError);
     } finally {
       setLoading(false);
     }
@@ -216,21 +400,19 @@ function App() {
   return (
     <div style={styles.page}>
       <div style={styles.shell}>
-        <h1 style={styles.title}>Clinical Reasoning Engine</h1>
-        <p style={styles.disclaimer}>
-          This is a research/demo system and not for clinical use.
-        </p>
+        <h1 style={styles.title}>{t.appTitle}</h1>
+        <p style={styles.disclaimer}>{t.disclaimer}</p>
 
         <textarea
           rows={10}
           style={styles.textarea}
-          placeholder="Paste clinical discharge note..."
+          placeholder={t.notePlaceholder}
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
 
         <label htmlFor="language-select" style={styles.fieldLabel}>
-          Input language
+          {t.inputLanguage}
         </label>
         <select
           id="language-select"
@@ -238,7 +420,23 @@ function App() {
           onChange={(e) => setLanguage(e.target.value)}
           style={styles.select}
         >
-          {LANGUAGE_OPTIONS.map((option) => (
+          {inputLanguageOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <label htmlFor="display-language-select" style={styles.fieldLabel}>
+          {t.displayLanguage}
+        </label>
+        <select
+          id="display-language-select"
+          value={displayLanguage}
+          onChange={(e) => setDisplayLanguage(e.target.value)}
+          style={styles.select}
+        >
+          {displayLanguageOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -247,35 +445,43 @@ function App() {
 
         <div style={styles.buttonRow}>
           <button onClick={analyze} disabled={!input.trim() || loading} style={styles.primaryButton}>
-            {loading ? "Analyzing..." : "Analyze"}
+            {loading ? t.analyzing : t.analyze}
           </button>
           <button onClick={loadSample} type="button" style={styles.secondaryButton}>
-            Try Sample
+            {t.trySample}
           </button>
         </div>
 
-        {loading && <p>Processing clinical note...</p>}
+        {loading && <p>{t.processing}</p>}
         {error ? <p style={styles.error}>{error}</p> : null}
 
         {report ? (
           <div style={{ marginTop: "30px" }}>
             <div style={styles.infoPanel}>
-              <strong>Language flow</strong>
-              <div style={styles.meta}>Input: {output?.source_language || language}</div>
-              <div style={styles.meta}>Pipeline: {output?.pipeline_language || "en"}</div>
-              <div style={styles.meta}>Display: {output?.display_language || output?.source_language || "en"}</div>
+              <strong>{t.languageFlow}</strong>
+              <div style={styles.meta}>
+                {t.input}: {output?.source_language || language}
+              </div>
+              <div style={styles.meta}>
+                {t.pipeline}: {output?.pipeline_language || "en"}
+              </div>
+              <div style={styles.meta}>
+                {t.display}: {output?.display_language || displayLanguage}
+              </div>
               {output?.translated_input_text && output?.translated_input_text !== input ? (
-                <div style={styles.meta}>Translated input used for reasoning: {output.translated_input_text}</div>
+                <div style={styles.meta}>
+                  {t.translatedInput}: {output.translated_input_text}
+                </div>
               ) : null}
             </div>
 
             <div style={styles.section}>
-              <h2>Timeline</h2>
+              <h2>{t.timeline}</h2>
               {timeline.length ? (
                 <div style={styles.timelineWrap}>
                   {timeline.map((section) => (
                     <div key={section.name} style={styles.timelineItem}>
-                      <strong>{formatSectionName(section.name)}</strong>
+                      <strong>{formatSectionName(section.name, t)}</strong>
                       <div style={styles.meta}>{section.text}</div>
                       {section.events?.map((event, index) => (
                         <div key={`${event.start}-${event.end}-${index}`} style={styles.timelineEvent}>
@@ -290,13 +496,13 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <p>No timeline returned.</p>
+                <p>{t.noTimeline}</p>
               )}
             </div>
 
             <div style={styles.section}>
-              <h2>Contradictions</h2>
-              {contradictions.length === 0 && <p>No contradictions found.</p>}
+              <h2>{t.contradictions}</h2>
+              {contradictions.length === 0 && <p>{t.noContradictions}</p>}
               {contradictions.map((item, index) => (
                 <div key={`${item.type}-${item.entity}-${index}`} style={styles.contradictionCard}>
                   <strong>{item.type}</strong>
@@ -306,7 +512,7 @@ function App() {
             </div>
 
             <div style={styles.section}>
-              <h2>Differential Diagnosis</h2>
+              <h2>{t.differentialDiagnosis}</h2>
               {differentials.length ? (
                 differentials.map((item, index) => {
                   const confidence = confidenceByName.get(item.name) ?? item.score ?? 0;
@@ -324,7 +530,7 @@ function App() {
                   );
                 })
               ) : (
-                <p>No differential diagnosis returned.</p>
+                <p>{t.noDifferential}</p>
               )}
             </div>
           </div>

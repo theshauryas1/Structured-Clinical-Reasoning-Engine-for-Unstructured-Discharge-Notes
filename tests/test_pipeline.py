@@ -98,14 +98,53 @@ def test_ingest_route_multilingual_edge_translation(monkeypatch):
     with TestClient(app) as client:
         response = client.post(
             "/ingest",
-            json={"note_text": note_text, "note_id": "multi-test-note", "lang": "auto"},
+            json={
+                "note_text": note_text,
+                "note_id": "multi-test-note",
+                "lang": "auto",
+                "display_lang": "fr",
+            },
         )
         assert response.status_code == 200
         payload = response.json()
         assert payload["source_language"] == "de"
         assert payload["pipeline_language"] == "en"
+        assert payload["display_language"] == "fr"
         assert payload["translated_input_text"] == "EN::Patient note in Deutsch"
-        assert payload["display_report"]["note_id"] == "display-de"
+        assert payload["display_report"]["note_id"] == "display-fr"
+
+
+def test_report_route_can_retranslate_saved_report(monkeypatch):
+    monkeypatch.setattr(
+        "backend.main.get_report",
+        lambda note_id: {
+            "note_id": note_id,
+            "warnings": [],
+            "timeline": {"sections": []},
+            "contradiction_flags": [],
+            "differentials": [],
+            "confidence_scores": [],
+            "reasoning_trace": [],
+            "orchestration_trace": [],
+            "source_language": "de",
+            "pipeline_language": "en",
+            "display_language": "de",
+            "display_report": {"note_id": "display-de"},
+            "translated_input_text": "EN::text",
+        },
+    )
+    monkeypatch.setattr(
+        "backend.main.build_display_report",
+        lambda payload, language: {"note_id": payload["note_id"], "display_language": language},
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/report/saved-note", params={"display_lang": "es"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["display_language"] == "es"
+    assert payload["display_report"]["display_language"] == "es"
 
 
 def test_rag_retriever_returns_condition_context():
