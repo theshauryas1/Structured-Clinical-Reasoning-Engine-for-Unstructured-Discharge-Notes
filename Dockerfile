@@ -26,7 +26,7 @@ WORKDIR /app
 COPY . .
 COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 
-ENV PORT=8000
-EXPOSE 8000
+ENV PORT=10000
+EXPOSE 10000
 
 CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT}"]
