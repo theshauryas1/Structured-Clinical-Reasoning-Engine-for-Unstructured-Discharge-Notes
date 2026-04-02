@@ -1,0 +1,2 @@
+spacy<3.8.0
+scispacy==0.5.4

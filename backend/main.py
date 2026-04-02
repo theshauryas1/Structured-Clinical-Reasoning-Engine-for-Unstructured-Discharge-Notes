@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.agents.graph import run_reasoning_pipeline
 from backend.db.models import Base, ClinicalNote, ReasoningOutput
+from backend.groq_guardrails import load_groq_settings
 from backend.ingestion.ner_extractor import EXTRACTOR_BACKEND, EXTRACTOR_WARNINGS
 from backend.ml.confidence_calibration import CALIBRATOR_PATH
 from backend.ml.ranking_model import RERANKER_PATH
@@ -126,6 +127,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict:
+    groq_settings = load_groq_settings()
     return {
         "status": "ok",
         "extractor_backend": EXTRACTOR_BACKEND,
@@ -137,6 +139,14 @@ def health() -> dict:
             "reranker": RERANKER_PATH.exists(),
             "confidence_calibrator": CALIBRATOR_PATH.exists(),
             "orchestration_policy": POLICY_PATH.exists(),
+        },
+        "groq": {
+            "configured": bool(groq_settings.api_key),
+            "model": groq_settings.model,
+            "max_retries": groq_settings.max_retries,
+            "min_interval_seconds": groq_settings.min_interval_seconds,
+            "backoff_seconds": groq_settings.backoff_seconds,
+            "timeout_seconds": groq_settings.timeout_seconds,
         },
         "database": {
             "configured": True,

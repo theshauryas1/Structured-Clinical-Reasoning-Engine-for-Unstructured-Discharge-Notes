@@ -45,6 +45,12 @@ cd clinical-reasoning-engine
 .\venv\Scripts\uvicorn.exe backend.main:app --reload
 ```
 
+Optional local NLP extras if you want the scispaCy extractor instead of the built-in fallback:
+
+```bash
+.\venv\Scripts\python.exe -m pip install -r backend/requirements-optional-nlp.txt
+```
+
 API endpoints:
 
 - `GET /health`
@@ -99,11 +105,26 @@ Required Railway env vars:
 - `CLINICAL_REASONING_CORS_ORIGINS`: your Vercel frontend URL, for example `https://your-app.vercel.app`
 - `PORT`: provided by Railway automatically
 
+Optional Groq env vars for free-tier protection:
+
+- `GROQ_API_KEY`: your Groq API key
+- `GROQ_MODEL`: defaults to `llama-3.1-8b-instant`
+- `GROQ_MAX_RETRIES`: defaults to `1`
+- `GROQ_MIN_INTERVAL_SECONDS`: defaults to `4`
+- `GROQ_BACKOFF_SECONDS`: defaults to `8`
+- `GROQ_TIMEOUT_SECONDS`: defaults to `30`
+
 Start command:
 
 ```bash
 uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 ```
+
+Deployment note:
+
+- Railway should install `backend/requirements.txt`
+- Do not install `backend/requirements-optional-nlp.txt` on Railway unless you intentionally want to compile heavy NLP dependencies
+- The app already falls back to a deterministic extractor when scispaCy is unavailable
 
 ### Vercel frontend
 
@@ -129,6 +150,20 @@ Schema notes:
 ```powershell
 .\start.ps1
 ```
+
+### Groq rate-limit guidance
+
+If you use the free Groq tier, start with:
+
+```env
+GROQ_MODEL=llama-3.1-8b-instant
+GROQ_MAX_RETRIES=1
+GROQ_MIN_INTERVAL_SECONDS=4
+GROQ_BACKOFF_SECONDS=8
+GROQ_TIMEOUT_SECONDS=30
+```
+
+This repo now includes a reusable guardrail helper in `backend/groq_guardrails.py` so future Groq-powered calls can share the same pacing and retry rules.
 
 ## Test suite
 
