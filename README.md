@@ -91,19 +91,19 @@ Optional env var:
 
 Recommended stack for this repo:
 
-- Backend: Railway
+- Backend: Render
 - Frontend: Vercel
 - Database: Neon Postgres
 
-### Railway backend
+### Render backend
 
-Set Railway root directory to the repo root and deploy the included `Dockerfile` or `railway.json`.
+Set the Render service root directory to the repo root and deploy the included `Dockerfile` or `render.yaml`.
 
-Required Railway env vars:
+Required Render env vars:
 
 - `DATABASE_URL`: Neon connection string
 - `CLINICAL_REASONING_CORS_ORIGINS`: your Vercel frontend URL, for example `https://your-app.vercel.app`
-- `PORT`: provided by Railway automatically
+- `PORT`: provided by Render automatically
 
 Optional Groq env vars for free-tier protection:
 
@@ -122,8 +122,8 @@ uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 
 Deployment note:
 
-- Railway should install `backend/requirements.txt`
-- Do not install `backend/requirements-optional-nlp.txt` on Railway unless you intentionally want to compile heavy NLP dependencies
+- Render should install `backend/requirements.txt`
+- Do not install `backend/requirements-optional-nlp.txt` on Render unless you intentionally want to compile heavy NLP dependencies
 - The app already falls back to a deterministic extractor when scispaCy is unavailable
 
 ### Vercel frontend
@@ -132,13 +132,13 @@ Set the Vercel project root to `frontend/`.
 
 Required Vercel env var:
 
-- `VITE_API_URL=https://your-railway-backend.up.railway.app`
+- `VITE_API_URL=https://your-render-backend.onrender.com`
 
 The included `frontend/vercel.json` is ready for a Vite static deploy.
 
 ### Neon database
 
-Create a Neon Postgres database and paste its pooled connection string into Railway as `DATABASE_URL`.
+Create a Neon Postgres database and paste its pooled connection string into Render as `DATABASE_URL`.
 
 Schema notes:
 
