@@ -10,6 +10,14 @@ DISCHARGE DIAGNOSES AND PLAN:
 Community-acquired pneumonia improved clinically. New onset atrial fibrillation noted during admission.`;
 
 const API_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+const LANGUAGE_OPTIONS = [
+  { value: "auto", label: "Auto-detect" },
+  { value: "en", label: "English" },
+  { value: "de", label: "Deutsch" },
+  { value: "fr", label: "Francais" },
+  { value: "nl", label: "Nederlands" },
+  { value: "es", label: "Espanol" },
+];
 
 const styles = {
   page: {
@@ -37,6 +45,19 @@ const styles = {
     border: "1px solid #d0d5dd",
     borderRadius: "8px",
     resize: "vertical",
+    background: "#ffffff",
+    marginBottom: "14px",
+  },
+  fieldLabel: {
+    display: "block",
+    fontWeight: 700,
+    marginBottom: "8px",
+  },
+  select: {
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
     background: "#ffffff",
     marginBottom: "14px",
   },
@@ -114,6 +135,13 @@ const styles = {
     color: "#475467",
     marginTop: "6px",
   },
+  infoPanel: {
+    background: "#eef4ff",
+    border: "1px solid #c7d7fe",
+    borderRadius: "8px",
+    padding: "12px",
+    marginTop: "12px",
+  },
   error: {
     color: "#b42318",
     marginTop: "8px",
@@ -132,6 +160,7 @@ function formatSectionName(value) {
 
 function App() {
   const [input, setInput] = useState("");
+  const [language, setLanguage] = useState("auto");
   const [output, setOutput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -162,7 +191,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ note_text: input }),
+        body: JSON.stringify({ note_text: input, lang: language }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -200,6 +229,22 @@ function App() {
           onChange={(e) => setInput(e.target.value)}
         />
 
+        <label htmlFor="language-select" style={styles.fieldLabel}>
+          Input language
+        </label>
+        <select
+          id="language-select"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={styles.select}
+        >
+          {LANGUAGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
         <div style={styles.buttonRow}>
           <button onClick={analyze} disabled={!input.trim() || loading} style={styles.primaryButton}>
             {loading ? "Analyzing..." : "Analyze"}
@@ -214,6 +259,16 @@ function App() {
 
         {report ? (
           <div style={{ marginTop: "30px" }}>
+            <div style={styles.infoPanel}>
+              <strong>Language flow</strong>
+              <div style={styles.meta}>Input: {output?.source_language || language}</div>
+              <div style={styles.meta}>Pipeline: {output?.pipeline_language || "en"}</div>
+              <div style={styles.meta}>Display: {output?.display_language || output?.source_language || "en"}</div>
+              {output?.translated_input_text && output?.translated_input_text !== input ? (
+                <div style={styles.meta}>Translated input used for reasoning: {output.translated_input_text}</div>
+              ) : null}
+            </div>
+
             <div style={styles.section}>
               <h2>Timeline</h2>
               {timeline.length ? (
