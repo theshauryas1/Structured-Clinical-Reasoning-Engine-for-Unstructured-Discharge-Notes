@@ -14,3 +14,6 @@ transformers>=4.40.0
 sentencepiece>=0.2.0
 langdetect>=1.0.9
 torch
+pymupdf
+pytesseract
+pillow

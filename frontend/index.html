@@ -3,10 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clinical Reasoning Engine</title>
+    <meta name="theme-color" content="#030a0c" />
+    <meta name="description" content="Nexus CRE — AI-powered structured reasoning engine for unstructured clinical discharge notes. Multi-agent timeline reconstruction, contradiction mining, and differential calibration." />
+    <meta property="og:title" content="Nexus CRE · Clinical Reasoning Engine" />
+    <meta property="og:description" content="AI-powered analysis of unstructured discharge notes with 3D visualization." />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <title>Nexus CRE · Clinical Reasoning Engine</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Inline critical styles to avoid FOUC -->
+    <style>
+      html, body, #root {
+        margin: 0;
+        padding: 0;
+        background: #030a0c;
+        min-height: 100vh;
+      }
+      /* Loading screen */
+      #boot-screen {
+        position: fixed;
+        inset: 0;
+        background: #030a0c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        gap: 16px;
+        transition: opacity 0.6s ease;
+      }
+      #boot-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .boot-logo {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        color: #cef79e;
+        letter-spacing: -1px;
+      }
+      .boot-bar {
+        width: 200px;
+        height: 2px;
+        background: rgba(206,247,158,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .boot-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #cef79e, #22d3ee);
+        border-radius: 2px;
+        animation: boot-load 1.2s ease forwards;
+      }
+      @keyframes boot-load {
+        from { width: 0%; }
+        to { width: 100%; }
+      }
+      .boot-text {
+        font-family: 'Roboto Mono', monospace;
+        font-size: 10px;
+        color: rgba(201,203,190,0.3);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+    </style>
   </head>
   <body>
+    <!-- Boot loading screen -->
+    <div id="boot-screen">
+      <div class="boot-logo">NEXUS CRE</div>
+      <div class="boot-bar"><div class="boot-fill"></div></div>
+      <div class="boot-text">Initializing Neural Agents...</div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <script>
+      // Fade out boot screen once React mounts
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const bs = document.getElementById('boot-screen');
+          if (bs) {
+            bs.classList.add('hidden');
+            setTimeout(() => bs.remove(), 700);
+          }
+        }, 1400);
+      });
+    </script>
   </body>
 </html>

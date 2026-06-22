@@ -11,3 +11,5 @@ venv
 frontend/node_modules
 frontend/dist
 backend/db/reports.sqlite3
+.env
+frontend/.env
