@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
@@ -11,6 +12,57 @@ export default function LoginPage({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { refresh } = useAuth();
+
+  useEffect(() => {
+    /* global google */
+    if (mode === "login" && typeof google !== "undefined") {
+      try {
+        const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+        if (client_id) {
+          google.accounts.id.initialize({
+            client_id: client_id,
+            callback: handleGoogleSuccess,
+          });
+          google.accounts.id.renderButton(
+            document.getElementById("google-signin-btn"),
+            {
+              theme: "filled_blue",
+              size: "large",
+              width: 360,
+              text: "signin_with",
+              shape: "rectangular"
+            }
+          );
+        }
+      } catch (err) {
+        console.error("Google Initialisation error:", err);
+      }
+    }
+  }, [mode]);
+
+  const handleGoogleSuccess = async (response) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ token: response.credential }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || "Google authentication failed.");
+      }
+      await refresh();
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +91,7 @@ export default function LoginPage({ onAuthSuccess }) {
         throw new Error(data.detail || "Authentication failed.");
       }
       if (onAuthSuccess) onAuthSuccess(data.username);
+      await refresh();
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -142,6 +195,20 @@ export default function LoginPage({ onAuthSuccess }) {
             {loading ? "Processing..." : mode === "login" ? "SIGN IN →" : "CREATE ACCOUNT →"}
           </button>
         </form>
+
+        {mode === "login" && (
+          <>
+            <div style={styles.divider}>
+              <span style={styles.dividerLine} />
+              <span style={styles.dividerText}>OR</span>
+              <span style={styles.dividerLine} />
+            </div>
+
+            <div style={styles.googleContainer}>
+              <div id="google-signin-btn" style={styles.googleButton}></div>
+            </div>
+          </>
+        )}
 
         <p style={styles.disclaimer}>
           🔒 Credentials are hashed with PBKDF2-SHA256. Sessions expire after 30 days.
@@ -310,5 +377,32 @@ const styles = {
     color: "rgba(201,203,190,0.2)",
     textAlign: "center",
     lineHeight: 1.6,
+  },
+  divider: {
+    display: "flex",
+    alignItems: "center",
+    margin: "24px 0",
+    gap: "12px",
+  },
+  dividerLine: {
+    flex: 1,
+    height: "1px",
+    background: "rgba(206,247,158,0.12)",
+  },
+  dividerText: {
+    fontFamily: "'Roboto Mono', monospace",
+    fontSize: "10px",
+    color: "rgba(206,247,158,0.35)",
+    letterSpacing: "1px",
+  },
+  googleContainer: {
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  },
+  googleButton: {
+    width: "100%",
+    maxWidth: "360px",
+    height: "40px",
   },
 };

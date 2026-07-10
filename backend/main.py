@@ -1,6 +1,14 @@
 import html
 import logging
 import os
+import secrets
+
+try:
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
+except ImportError:
+    id_token = None
+    google_requests = None
 
 # Load .env before any backend module reads env vars
 try:
@@ -202,9 +210,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         csp_directives = (
             "default-src 'self'; "
             "font-src 'self' https://fonts.gstatic.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "script-src 'self' 'unsafe-inline'; "
-            "connect-src 'self' ws://localhost:* http://localhost:* https://api.groq.com https://integrate.api.nvidia.com https://api.openai.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com; "
+            "frame-src 'self' https://accounts.google.com; "
+            "connect-src 'self' ws://localhost:* http://localhost:* https://api.groq.com https://integrate.api.nvidia.com https://api.openai.com https://accounts.google.com; "
             "img-src 'self' data:;"
         )
         response.headers["Content-Security-Policy"] = csp_directives
@@ -608,6 +617,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleLoginRequest(BaseModel):
+    token: str
+
+
 # --- Auth Endpoints ---
 
 def _get_current_user_id(session_token: Optional[str] = Cookie(default=None)) -> Optional[str]:
@@ -665,6 +678,61 @@ def login_user(payload: LoginRequest, response: Response) -> dict:
         max_age=60 * 60 * 24 * 30,
     )
     return {"status": "ok", "username": user.username}
+
+
+@app.post("/api/auth/google")
+def google_login(payload: GoogleLoginRequest, response: Response) -> dict:
+    if id_token is None or google_requests is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Google auth library is not installed on the server."
+        )
+    try:
+        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        # Verify the ID token from Google
+        # Note: client_id is optional but highly recommended to verify audience.
+        # If not set, we log a warning but proceed to support local testing configurations.
+        if not client_id:
+            logger.warning("GOOGLE_CLIENT_ID environment variable is not set!")
+        
+        idinfo = id_token.verify_oauth2_token(
+            payload.token,
+            google_requests.Request(),
+            client_id
+        )
+        
+        email = idinfo.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Google token missing email.")
+            
+        username = email.lower()
+        
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.username == username).first()
+            if not user:
+                user_id = str(uuid.uuid4())
+                pw_hash = "google_oauth_auth_" + secrets.token_hex(16)
+                user = User(id=user_id, username=username, password_hash=pw_hash)
+                db.add(user)
+                db.commit()
+                # Reload from DB
+                user = db.query(User).filter(User.username == username).first()
+                
+            token = create_session(db, user.id)
+            
+        response.set_cookie(
+            key="session_token",
+            value=token,
+            httponly=True,
+            samesite="lax",
+            max_age=60 * 60 * 24 * 30,
+        )
+        return {"status": "ok", "username": user.username}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error in google_login: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during Google login.")
 
 
 @app.post("/api/auth/logout")

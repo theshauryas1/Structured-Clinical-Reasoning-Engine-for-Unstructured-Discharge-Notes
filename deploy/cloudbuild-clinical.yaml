@@ -1,0 +1,42 @@
+steps:
+  # ─── 1. Fetch Google Client ID from Secret Manager ──────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest --secret="clinical-google-client-id" > client_id.txt
+
+  # ─── 2. Build Bundled Container Image ───────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        CLIENT_ID=$$(cat client_id.txt)
+        docker build \
+          --build-arg VITE_GOOGLE_CLIENT_ID=$$CLIENT_ID \
+          -t us-central1-docker.pkg.dev/${PROJECT_ID}/clinical/clinical-cre:latest .
+
+  # ─── 3. Push Image to Artifact Registry ─────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/clinical/clinical-cre:latest'
+
+  # ─── 4. Deploy to Cloud Run ──────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'clinical-cre'
+      - '--image=us-central1-docker.pkg.dev/${PROJECT_ID}/clinical/clinical-cre:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=10000'
+      - '--cpu=1'
+      - '--memory=1Gi'
+      - '--timeout=300'
+      - '--set-secrets=GROQ_API_KEY=clinical-groq-key:latest,NVIDIA_NIM_API_KEY=clinical-nvidia-key:latest,GEMINI_API_KEY=clinical-gemini-key:latest,GOOGLE_CLIENT_ID=clinical-google-client-id:latest'

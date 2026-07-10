@@ -17,3 +17,4 @@ torch
 pymupdf
 pytesseract
 pillow
+google-auth>=2.29.0
