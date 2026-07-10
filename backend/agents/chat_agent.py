@@ -1,11 +1,9 @@
 import os
 import re
-import requests
 from typing import List, Dict
 from pydantic import BaseModel, Field
 
-from backend.groq_guardrails import load_groq_settings, call_with_groq_limits
-from backend.nim_guardrails import load_nim_settings, call_with_nim_limits
+from backend.llm_gateway import call_llm_gateway
 
 CLINICAL_DISCLAIMER = "[Disclaimer: This assistant is for educational and auditing purposes only. It is not a substitute for professional clinical advice or judgment.]"
 LAYPERSON_DISCLAIMER = "[Disclaimer: This assistant is for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult your doctor for medical concerns.]"
@@ -45,51 +43,8 @@ class ChatRequest(BaseModel):
 
 
 def call_llm(messages: List[Dict[str, str]]) -> str:
-    # 1. Try NVIDIA NIM first
-    nim_settings = load_nim_settings()
-    if nim_settings.api_key:
-        def _call_nim():
-            headers = {
-                "Authorization": f"Bearer {nim_settings.api_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": nim_settings.model,
-                "messages": messages,
-                "temperature": 0.2,
-                "max_tokens": 1024
-            }
-            url = f"{nim_settings.base_url.rstrip('/')}/chat/completions"
-            response = requests.post(url, json=payload, headers=headers, timeout=nim_settings.timeout_seconds)
-            if response.status_code == 200:
-                return response.json()["choices"][0]["message"]["content"]
-            raise RuntimeError(f"NVIDIA NIM completions request failed (status {response.status_code}): {response.text}")
-        
-        return call_with_nim_limits(_call_nim, nim_settings)
+    return call_llm_gateway(messages)
 
-    # 2. Try Groq fallback
-    groq_settings = load_groq_settings()
-    if groq_settings.api_key:
-        def _call_groq():
-            headers = {
-                "Authorization": f"Bearer {groq_settings.api_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": groq_settings.model,
-                "messages": messages,
-                "temperature": 0.2,
-                "max_tokens": 1024
-            }
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            response = requests.post(url, json=payload, headers=headers, timeout=groq_settings.timeout_seconds)
-            if response.status_code == 200:
-                return response.json()["choices"][0]["message"]["content"]
-            raise RuntimeError(f"Groq completions request failed (status {response.status_code}): {response.text}")
-            
-        return call_with_groq_limits(_call_groq, groq_settings)
-
-    raise RuntimeError("No LLM API Key is configured. Please configure GROQ_API_KEY or NVIDIA_NIM_API_KEY in .env.")
 
 
 def formulate_report_context(report: dict) -> str:

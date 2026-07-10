@@ -1,6 +1,14 @@
 import html
 import logging
 import os
+
+# Load .env before any backend module reads env vars
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)   # .env always wins; safe since we set intentionally
+except ImportError:
+    pass  # python-dotenv optional; env vars set externally still work
+
 import re
 import time
 import uuid
@@ -9,7 +17,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, File, Form, UploadFile, Security, Depends
+from fastapi import FastAPI, HTTPException, File, Form, UploadFile, Security, Depends, Cookie, Header, Response
 from fastapi.exception_handlers import http_exception_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +37,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from backend.agents.graph import run_reasoning_pipeline
 from backend.agents.chat_agent import ChatRequest, generate_chat_response
 from backend.agents.plain_lang_translator import generate_plain_language_explanation
-from backend.db.models import Base, ClinicalNote, ReasoningOutput
+from backend.db.models import Base, ClinicalNote, ReasoningOutput, User, UserSession, Chat, ChatMessage
+from backend.db.auth import hash_password, verify_password, create_session, verify_session
+from backend.llm_gateway import call_llm_gateway
 from backend.groq_guardrails import load_groq_settings
 from backend.nim_guardrails import load_nim_settings
 from backend.ingestion.ner_extractor import EXTRACTOR_BACKEND, EXTRACTOR_WARNINGS
@@ -258,11 +268,25 @@ def initialize_database() -> None:
         DEFAULT_SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(DATABASE_ENGINE)
 
+    # SQLite migration for user_id column in clinical_notes
+    if DATABASE_URL.startswith("sqlite"):
+        try:
+            with DATABASE_ENGINE.begin() as conn:
+                # Check if user_id column exists
+                cursor = conn.exec_driver_sql("PRAGMA table_info(clinical_notes)")
+                columns = [row[1] for row in cursor.fetchall()]
+                if "user_id" not in columns:
+                    conn.exec_driver_sql("ALTER TABLE clinical_notes ADD COLUMN user_id TEXT")
+                    logger.info("Migrated SQLite: Added user_id column to clinical_notes")
+        except Exception as exc:
+            logger.warning(f"Failed to run SQLite database migration: {exc}")
 
-def save_report(note_id: str, note_text: str, report: dict) -> None:
+
+def save_report(note_id: str, note_text: str, report: dict, user_id: str) -> None:
     timeline_payload = report.get("timeline", {})
     note = ClinicalNote(
         id=note_id,
+        user_id=user_id,
         raw_text=note_text,
         extractor_backend=timeline_payload.get("extractor_backend", EXTRACTOR_BACKEND),
         warnings_json=report.get("warnings", []),
@@ -283,6 +307,7 @@ def save_report(note_id: str, note_text: str, report: dict) -> None:
         session.merge(note)
         session.merge(reasoning_output)
         session.commit()
+
 
 
 def get_report(note_id: str) -> Optional[dict]:
@@ -373,6 +398,10 @@ def health() -> dict:
                 "backoff_seconds": nim_settings.backoff_seconds,
                 "timeout_seconds": nim_settings.timeout_seconds,
             },
+            "gemini": {
+                "configured": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
+                "model": os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+            },
             "database": {
                 "configured": True,
                 "driver": make_url(DATABASE_URL).drivername,
@@ -411,7 +440,7 @@ def ingest_note(payload: IngestRequest) -> dict:
             "display_report": display_report,
             "translated_input_text": english_note,
         }
-        save_report(note_id, payload.note_text, response_payload)
+        save_report(note_id, payload.note_text, response_payload, user_id=getattr(payload, '_user_id', None) or "anonymous")
         return response_payload
     except Exception as exc:
         logger.error(f"Reasoning pipeline run failed for ID {note_id}: {exc}", exc_info=True)
@@ -561,22 +590,298 @@ def serve_frontend() -> FileResponse:
             status_code=503,
             detail="Frontend assets are not built yet. Run `npm install && npm run build` in the frontend directory.",
         )
-    return FileResponse(index_file)
+    return FileResponse(
+        index_file,
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
+# --- Auth Pydantic Models ---
+
+class RegisterRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=64)
+    password: str = Field(..., min_length=8, max_length=256)
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+# --- Auth Endpoints ---
+
+def _get_current_user_id(session_token: Optional[str] = Cookie(default=None)) -> Optional[str]:
+    """Dependency: returns user_id from session cookie, or None if not logged in."""
+    if not session_token:
+        return None
+    with SessionLocal() as db:
+        return verify_session(db, session_token)
+
+
+def _require_auth(user_id: Optional[str] = Depends(_get_current_user_id)) -> str:
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    return user_id
+
+
+@app.post("/api/auth/register")
+def register_user(payload: RegisterRequest, response: Response) -> dict:
+    username = payload.username.strip().lower()
+    if not username:
+        raise HTTPException(status_code=400, detail="Username cannot be empty.")
+    with SessionLocal() as db:
+        existing = db.query(User).filter(User.username == username).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="Username already taken.")
+        user_id = str(uuid.uuid4())
+        pw_hash = hash_password(payload.password)
+        new_user = User(id=user_id, username=username, password_hash=pw_hash)
+        db.add(new_user)
+        db.commit()
+        token = create_session(db, user_id)
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+    )
+    return {"status": "registered", "username": username}
+
+
+@app.post("/api/auth/login")
+def login_user(payload: LoginRequest, response: Response) -> dict:
+    username = payload.username.strip().lower()
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.username == username).first()
+        if not user or not verify_password(payload.password, user.password_hash):
+            raise HTTPException(status_code=401, detail="Invalid username or password.")
+        token = create_session(db, user.id)
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+    )
+    return {"status": "ok", "username": user.username}
+
+
+@app.post("/api/auth/logout")
+def logout_user(response: Response, session_token: Optional[str] = Cookie(default=None)) -> dict:
+    if session_token:
+        with SessionLocal() as db:
+            record = db.query(UserSession).filter(UserSession.token == session_token).first()
+            if record:
+                db.delete(record)
+                db.commit()
+    response.delete_cookie("session_token")
+    return {"status": "logged_out"}
+
+
+@app.get("/api/auth/me")
+def get_me(user_id: str = Depends(_require_auth)) -> dict:
+    with SessionLocal() as db:
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+        return {"user_id": user.id, "username": user.username}
+
+
+# --- Chat API Endpoints ---
+
+class NewChatRequest(BaseModel):
+    title: str = Field(default="New Chat", max_length=255)
+    note_id: Optional[str] = Field(default=None)
+
+
+class ChatMessageRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    mode: str = Field(default="general")  # 'general', 'rag', 'report'
+    note_id: Optional[str] = Field(default=None)
+
+
+@app.get("/api/chats")
+def list_chats(user_id: str = Depends(_require_auth)) -> list:
+    with SessionLocal() as db:
+        chats = db.query(Chat).filter(Chat.user_id == user_id).order_by(Chat.created_at.desc()).all()
+        return [
+            {
+                "id": c.id,
+                "title": c.title,
+                "note_id": c.note_id,
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+                "message_count": len(c.messages),
+            }
+            for c in chats
+        ]
+
+
+@app.post("/api/chats")
+def create_chat(payload: NewChatRequest, user_id: str = Depends(_require_auth)) -> dict:
+    chat_id = str(uuid.uuid4())
+    with SessionLocal() as db:
+        new_chat = Chat(id=chat_id, user_id=user_id, title=payload.title, note_id=payload.note_id)
+        db.add(new_chat)
+        db.commit()
+    return {"id": chat_id, "title": payload.title, "note_id": payload.note_id}
+
+
+@app.get("/api/chats/{chat_id}")
+def get_chat_messages(chat_id: str, user_id: str = Depends(_require_auth)) -> dict:
+    with SessionLocal() as db:
+        chat = db.get(Chat, chat_id)
+        if not chat or chat.user_id != user_id:
+            raise HTTPException(status_code=404, detail="Chat not found.")
+        messages = [
+            {
+                "id": m.id,
+                "role": m.role,
+                "content": m.content,
+                "media_name": m.media_name,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in sorted(chat.messages, key=lambda x: x.created_at or "")
+        ]
+        return {"chat_id": chat_id, "title": chat.title, "note_id": chat.note_id, "messages": messages}
+
+
+@app.post("/api/chats/{chat_id}/message")
+async def send_chat_message(
+    chat_id: str,
+    content: str = Form(...),
+    mode: str = Form(default="general"),
+    note_id: Optional[str] = Form(default=None),
+    file: Optional[UploadFile] = File(default=None),
+    user_id: str = Depends(_require_auth),
+) -> dict:
+    with SessionLocal() as db:
+        chat = db.get(Chat, chat_id)
+        if not chat or chat.user_id != user_id:
+            raise HTTPException(status_code=404, detail="Chat not found.")
+
+    # Extract text from uploaded file if present
+    media_name = None
+    media_context = ""
+    if file and file.filename:
+        try:
+            file_bytes, filename = await validate_uploaded_file(file)
+            extracted_text, _ = extract_content(file_bytes, filename, file.content_type or "application/octet-stream")
+            media_name = filename
+            media_context = f"\n\n[DOCUMENT CONTEXT from '{filename}']:\n{extracted_text[:8000]}"
+        except Exception as exc:
+            logger.warning(f"Chat file extraction failed: {exc}")
+            media_context = f"\n\n[File upload '{file.filename}' could not be processed: {exc}]"
+            media_name = file.filename
+
+    # Build system prompt based on mode
+    if mode == "rag":
+        from backend.rag.retriever import retrieve_context
+        rag_results = retrieve_context(content, top_k=3)
+        rag_context = "\n".join(
+            f"- {r['condition']}: {r['summary']} (Follow-up: {r.get('follow_up', '')})"
+            for r in rag_results
+        )
+        system_prompt = (
+            "You are an expert clinical reasoning assistant backed by a medical guidelines knowledge base. "
+            "Answer the user's question using the following retrieved clinical guidelines as context.\n\n"
+            f"RETRIEVED GUIDELINES:\n{rag_context}\n\n"
+            "[Disclaimer: This assistant is for educational and auditing purposes only. Not for clinical decision-making.]"
+        )
+    elif mode == "report" and note_id:
+        report = get_report(note_id)
+        if report:
+            from backend.agents.chat_agent import formulate_report_context
+            report_ctx = formulate_report_context(report)
+            system_prompt = (
+                "You are an expert clinical reasoning assistant. Answer questions about the patient report.\n\n"
+                f"{report_ctx}\n\n"
+                "[Disclaimer: This assistant is for educational and auditing purposes only. Not for clinical decision-making.]"
+            )
+        else:
+            system_prompt = "You are an expert clinical reasoning assistant. [Disclaimer: Educational use only.]"
+    else:
+        system_prompt = (
+            "You are a knowledgeable medical information assistant. Answer the user's medical or clinical question clearly and accurately. "
+            "Always remind users to consult a qualified healthcare professional for personal medical advice. "
+            "[Disclaimer: This assistant is for educational purposes only. Not a substitute for professional medical advice.]"
+        )
+
+    # Save user message
+    user_msg_id = str(uuid.uuid4())
+    user_content = content + media_context
+    with SessionLocal() as db:
+        user_msg = ChatMessage(
+            id=user_msg_id,
+            chat_id=chat_id,
+            role="user",
+            content=content,  # store clean content; context sent to LLM only
+            media_name=media_name,
+            media_content=media_context if media_context else None,
+        )
+        db.add(user_msg)
+        db.commit()
+
+    # Get conversation history
+    with SessionLocal() as db:
+        chat = db.get(Chat, chat_id)
+        history = sorted(chat.messages, key=lambda x: x.created_at or "")
+        llm_messages = [{"role": "system", "content": system_prompt}]
+        for m in history[:-1]:  # exclude newly added user msg
+            msg_content = m.content
+            if m.media_content:
+                msg_content += m.media_content
+            llm_messages.append({"role": m.role, "content": msg_content})
+        # Add current user message with file context
+        llm_messages.append({"role": "user", "content": user_content})
+
+    # Call LLM Gateway
+    try:
+        assistant_reply = call_llm_gateway(llm_messages)
+    except Exception as exc:
+        logger.error(f"LLM Gateway call failed in chat: {exc}", exc_info=True)
+        assistant_reply = "I'm sorry, the AI service is temporarily unavailable. Please try again shortly."
+
+    # Save assistant message
+    assistant_msg_id = str(uuid.uuid4())
+    with SessionLocal() as db:
+        assistant_msg = ChatMessage(
+            id=assistant_msg_id,
+            chat_id=chat_id,
+            role="assistant",
+            content=assistant_reply,
+        )
+        db.add(assistant_msg)
+        db.commit()
+
+    return {"response": assistant_reply, "message_id": assistant_msg_id}
+
+
+@app.delete("/api/chats/{chat_id}")
+def delete_chat(chat_id: str, user_id: str = Depends(_require_auth)) -> dict:
+    with SessionLocal() as db:
+        chat = db.get(Chat, chat_id)
+        if not chat or chat.user_id != user_id:
+            raise HTTPException(status_code=404, detail="Chat not found.")
+        db.delete(chat)
+        db.commit()
+    return {"status": "deleted", "chat_id": chat_id}
 
 
 @app.exception_handler(StarletteHTTPException)
 async def spa_route_handler(request, exc):
     if exc.status_code == 404:
         path = request.url.path
-        # Skip API routes and other known routes
         if path.startswith("/api") or path in {
             "/ingest", "/ingest-file", "/chat", "/explain", "/health", "/reports"
         } or path.startswith("/explain/") or path.startswith("/report/"):
             return await http_exception_handler(request, exc)
-        
         index_file = FRONTEND_DIST_DIR / "index.html"
         if index_file.exists():
-            return FileResponse(index_file)
+            return FileResponse(
+                index_file,
+                headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+            )
     return await http_exception_handler(request, exc)
 
 

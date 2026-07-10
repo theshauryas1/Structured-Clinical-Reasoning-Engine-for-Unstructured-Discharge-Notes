@@ -150,7 +150,7 @@ const NAV_LINKS = [
   { to: "/diagnostics", label: "Diagnostics", badge: "AI" },
 ];
 
-export default function Navbar3D() {
+export default function Navbar3D({ user = null, onLogout = null }) {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -334,6 +334,81 @@ export default function Navbar3D() {
         >
           <span style={{ fontSize: 12 }}>🔑</span>
         </button>
+
+        {/* User account area */}
+        {user ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "5px 11px",
+              background: "rgba(206,247,158,0.05)",
+              border: "1px solid rgba(206,247,158,0.12)",
+              borderRadius: 8,
+            }}>
+              <div style={{
+                width: 20, height: 20, borderRadius: "50%",
+                background: "linear-gradient(135deg, rgba(206,247,158,0.2), rgba(206,247,158,0.05))",
+                border: "1px solid rgba(206,247,158,0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 9, color: "#cef79e",
+              }}>
+                {user.username?.[0]?.toUpperCase() || "U"}
+              </div>
+              <span style={{
+                fontFamily: "'Roboto Mono', monospace",
+                fontSize: 10, letterSpacing: "0.5px",
+                color: "rgba(206,247,158,0.6)",
+                maxWidth: 90, overflow: "hidden",
+                textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {user.username}
+              </span>
+            </div>
+            <button
+              id="navbar-logout-btn"
+              onClick={onLogout}
+              title="Sign out"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(239,68,68,0.2)",
+                borderRadius: 8, padding: "5px 9px",
+                color: "rgba(239,68,68,0.5)",
+                fontFamily: "'Roboto Mono', monospace",
+                fontSize: 9, letterSpacing: "0.5px",
+                cursor: "pointer", transition: "all 0.15s ease-out",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.9)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.5)";
+              }}
+            >
+              ⏻ OUT
+            </button>
+          </div>
+        ) : (
+          <a
+            id="navbar-login-link"
+            href="/login"
+            style={{
+              marginLeft: 8,
+              padding: "6px 14px",
+              background: "rgba(206,247,158,0.08)",
+              border: "1px solid rgba(206,247,158,0.2)",
+              borderRadius: 8,
+              color: "rgba(206,247,158,0.7)",
+              fontFamily: "'Roboto Mono', monospace",
+              fontSize: 10, letterSpacing: "0.5px",
+              textDecoration: "none",
+              transition: "all 0.15s ease-out",
+            }}
+          >
+            SIGN IN
+          </a>
+        )}
       </nav>
 
       {/* Security Modal Overlay */}
