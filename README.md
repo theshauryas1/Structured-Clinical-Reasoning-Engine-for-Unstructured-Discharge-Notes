@@ -2,6 +2,18 @@
 
 An end-to-end MVP for extracting structured clinical timelines from discharge notes, detecting temporal contradictions, generating differential hypotheses, scoring confidence, and exposing the results through a FastAPI backend plus React audit UI.
 
+## Documentation Directory
+
+The project includes structured documentation covering system design, APIs, database tables, and development guides:
+
+- **[context.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/context.md)**: Product definition, clinical safety disclaimers, and user persona requirements.
+- **[architecture.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/architecture.md)**: Overall system diagrams, LangGraph orchestration state, routing logic, and ML agents.
+- **[api.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/api.md)**: FastAPI REST endpoints specification, payload examples, and token rate pacing guardrails.
+- **[database.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/database.md)**: SQLite/Postgres schemas, SQLAlchemy entity relationships, and JSON formatting specifications.
+- **[onboarding.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/onboarding.md)**: Step-by-step developer installation guide, testing scripts, and ML retraining hooks.
+- **[learning_notes.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/learning_notes.md)**: Developer log discussing translation chunk sizes, pgvector fallbacks, and regression calibrator metrics. *(Excluded from git tracking)*
+- **[interview_notes.md](file:///c:/Structured%20Clinical%20Reasoning%20Engine%20for%20Unstructured%20Discharge%20Notes/clinical-reasoning-engine/interview_notes.md)**: System design review notes, conceptual tradeoffs, and clinical safety Q&A. *(Excluded from git tracking)*
+
 ## What is implemented
 
 - `backend/ingestion/ner_extractor.py`

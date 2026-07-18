@@ -9,3 +9,7 @@ __pycache__/
 backend/db/reports.sqlite3
 .env
 frontend/.env
+
+# Personal/conceptual notes
+learning_notes.md
+interview_notes.md

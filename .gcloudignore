@@ -1,0 +1,12 @@
+# This file specifies files and directories that should be ignored by Google Cloud tools.
+# It matches patterns in .gitignore to avoid deploying local files.
+.gcloudignore
+.git
+.gitignore
+
+# Include common gitignore files
+#!include:.gitignore
+
+# Personal / conceptual notes
+learning_notes.md
+interview_notes.md
