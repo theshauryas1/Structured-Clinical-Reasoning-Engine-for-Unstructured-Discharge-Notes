@@ -11,6 +11,7 @@ T = TypeVar("T")
 class NimSettings:
     api_key: str
     model: str
+    riva_model: str
     base_url: str
     max_retries: int
     min_interval_seconds: float
@@ -26,6 +27,7 @@ def load_nim_settings() -> NimSettings:
     return NimSettings(
         api_key=os.getenv("NVIDIA_NIM_API_KEY", "").strip(),
         model=os.getenv("NVIDIA_NIM_MODEL", "meta/llama-3.1-8b-instruct").strip(),
+        riva_model=os.getenv("NVIDIA_RIVA_MODEL", "nvidia/riva-translate-4b-instruct-v2").strip(),
         base_url=os.getenv("NVIDIA_NIM_BASE_URL", "https://integrate.api.nvidia.com/v1").strip(),
         max_retries=max(0, int(os.getenv("NVIDIA_NIM_MAX_RETRIES", "1"))),
         min_interval_seconds=max(0.0, float(os.getenv("NVIDIA_NIM_MIN_INTERVAL_SECONDS", "1.0"))),

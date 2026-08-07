@@ -62,6 +62,8 @@ from backend.translation_layer import (
     build_display_report,
     detect_input_language,
     translate,
+    get_active_translation_provider,
+    get_supported_languages,
 )
 
 logger = logging.getLogger("clinical_reasoning_security")
@@ -378,13 +380,15 @@ def health() -> dict:
     try:
         groq_settings = load_groq_settings()
         nim_settings = load_nim_settings()
+        translation_info = get_active_translation_provider()
         return {
             "status": "ok",
             "extractor_backend": EXTRACTOR_BACKEND,
             "warnings": EXTRACTOR_WARNINGS,
             "translation_models_available": TRANSFORMERS_AVAILABLE,
             "language_detection_available": LANGDETECT_AVAILABLE,
-            "supported_languages": ["en", *SUPPORTED.keys()],
+            "supported_languages": get_supported_languages(),
+            "translation": translation_info,
             "learned_artifacts": {
                 "reranker": RERANKER_PATH.exists(),
                 "confidence_calibrator": CALIBRATOR_PATH.exists(),
@@ -401,6 +405,7 @@ def health() -> dict:
             "nvidia_nim": {
                 "configured": bool(nim_settings.api_key),
                 "model": nim_settings.model,
+                "riva_model": nim_settings.riva_model,
                 "base_url": nim_settings.base_url,
                 "max_retries": nim_settings.max_retries,
                 "min_interval_seconds": nim_settings.min_interval_seconds,

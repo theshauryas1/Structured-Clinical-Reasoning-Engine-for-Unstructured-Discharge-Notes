@@ -1,4 +1,8 @@
-export const SUPPORTED_LANGUAGES = ["en", "de", "fr", "nl", "es"];
+export const SUPPORTED_LANGUAGES = [
+  "en", "de", "fr", "nl", "es", "hi", "zh", "ja", "ko", "it", "pt", "ru",
+  "ar", "tr", "cs", "da", "el", "hu", "fi", "no", "pl", "ro", "sk", "sv",
+  "bg", "uk", "hr", "et", "sl", "lt", "lv", "id", "th", "vi"
+];
 
 export const TRANSLATIONS = {
   en: {
@@ -28,10 +32,39 @@ export const TRANSLATIONS = {
     unknown: "Unknown",
     languageLabels: {
       en: "English",
-      de: "German",
-      fr: "French",
-      nl: "Dutch",
-      es: "Spanish",
+      de: "German (Deutsch)",
+      fr: "French (Français)",
+      nl: "Dutch (Nederlands)",
+      es: "Spanish (Español)",
+      hi: "Hindi (हिंदी)",
+      zh: "Chinese (中文)",
+      ja: "Japanese (日本語)",
+      ko: "Korean (한국어)",
+      it: "Italian (Italiano)",
+      pt: "Portuguese (Português)",
+      ru: "Russian (Русский)",
+      ar: "Arabic (العربية)",
+      tr: "Turkish (Türkçe)",
+      cs: "Czech (Čeština)",
+      da: "Danish (Dansk)",
+      el: "Greek (Ελληνικά)",
+      hu: "Hungarian (Magyar)",
+      fi: "Finnish (Suomi)",
+      no: "Norwegian (Norsk)",
+      pl: "Polish (Polski)",
+      ro: "Romanian (Română)",
+      sk: "Slovak (Slovenčina)",
+      sv: "Swedish (Svenska)",
+      bg: "Bulgarian (Български)",
+      uk: "Ukrainian (Українська)",
+      hr: "Croatian (Hrvatski)",
+      et: "Estonian (Eesti)",
+      sl: "Slovenian (Slovenščina)",
+      lt: "Lithuanian (Lietuvių)",
+      lv: "Latvian (Latviešu)",
+      id: "Indonesian (Bahasa Indonesia)",
+      th: "Thai (ไทย)",
+      vi: "Vietnamese (Tiếng Việt)",
     },
     chatTitle: "Report Chat Q&A",
     chatDisclaimer: "Disclaimer: This assistant is for educational/auditing purposes and does not substitute for clinical advice.",
@@ -73,6 +106,7 @@ export const TRANSLATIONS = {
       fr: "Franzoesisch",
       nl: "Niederlaendisch",
       es: "Spanisch",
+      hi: "Hindi (हिंदी)",
     },
     chatTitle: "Bericht-Chat Q&A",
     chatDisclaimer: "Disclaimer: Dieser Assistent dient Forschungs-/Audit-Zwecken und ersetzt keine klinische Beratung.",
@@ -114,6 +148,7 @@ export const TRANSLATIONS = {
       fr: "Francais",
       nl: "Neerlandais",
       es: "Espagnol",
+      hi: "Hindi (हिंदी)",
     },
     chatTitle: "Chat Q&A du rapport",
     chatDisclaimer: "Disclaimer: Cet assistant est a des fins d'audit/recherche et ne remplace pas un avis clinique.",
@@ -155,6 +190,7 @@ export const TRANSLATIONS = {
       fr: "Frans",
       nl: "Nederlands",
       es: "Spaans",
+      hi: "Hindi (हिंदी)",
     },
     chatTitle: "Rapport Chat Q&A",
     chatDisclaimer: "Disclaimer: Deze assistent is voor audit-/onderzoeksdoeleinden en vervangt geen klinisch advies.",
@@ -196,6 +232,7 @@ export const TRANSLATIONS = {
       fr: "Frances",
       nl: "Neerlandes",
       es: "Espanol",
+      hi: "Hindi (हिंदी)",
     },
     chatTitle: "Chat Q&A del informe",
     chatDisclaimer: "Disclaimer: Este asistente es para fines de auditoria/investigacion y no sustituye el consejo clinico.",
@@ -213,11 +250,13 @@ export function getTranslations(language) {
 }
 
 export function buildLanguageOptions(translations) {
+  const currentLabels = translations?.languageLabels || TRANSLATIONS.en.languageLabels;
+  const fallbackLabels = TRANSLATIONS.en.languageLabels;
   return [
-    { value: "auto", label: translations.autoDetect },
+    { value: "auto", label: translations?.autoDetect || TRANSLATIONS.en.autoDetect },
     ...SUPPORTED_LANGUAGES.map((value) => ({
       value,
-      label: translations.languageLabels[value],
+      label: currentLabels[value] || fallbackLabels[value] || value.toUpperCase(),
     })),
   ];
 }

@@ -1,6 +1,12 @@
+import logging
+import os
 from copy import deepcopy
 from functools import lru_cache
 from typing import Any, Tuple
+
+logger = logging.getLogger("translation_layer")
+
+RIVA_MODEL_DEFAULT = "nvidia/riva-translate-4b-instruct-v2"
 
 SUPPORTED = {
     "de": ("Helsinki-NLP/opus-mt-de-en", "Helsinki-NLP/opus-mt-en-de"),
@@ -8,7 +14,15 @@ SUPPORTED = {
     "nl": ("Helsinki-NLP/opus-mt-nl-en", "Helsinki-NLP/opus-mt-en-nl"),
     "es": ("Helsinki-NLP/opus-mt-es-en", "Helsinki-NLP/opus-mt-en-es"),
 }
-SUPPORTED_WITH_ENGLISH = {"en", *SUPPORTED.keys()}
+
+RIVA_SUPPORTED_LANGUAGES = {
+    "en", "de", "fr", "nl", "es", "zh", "ja", "ko", "it", "pt", "ru",
+    "hi", "ar", "tr", "cs", "da", "el", "hu", "fi", "no", "pl", "ro",
+    "sk", "sv", "bg", "uk", "hr", "et", "sl", "lt", "lv", "id", "th", "vi",
+}
+
+SUPPORTED_WITH_ENGLISH = {"en", *SUPPORTED.keys(), *RIVA_SUPPORTED_LANGUAGES}
+
 TRANSLATABLE_FIELDS = {
     "raw_text",
     "text",
@@ -76,6 +90,33 @@ def _split_text(text: str, limit: int = 450) -> list[str]:
     return chunks or [text]
 
 
+def get_active_translation_provider() -> dict:
+    nim_key = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
+    riva_model = os.getenv("NVIDIA_RIVA_MODEL", RIVA_MODEL_DEFAULT).strip()
+    backend = os.getenv("TRANSLATION_BACKEND", "auto").lower().strip()
+
+    if backend == "riva" or (backend == "auto" and nim_key):
+        active = "riva"
+    elif TRANSFORMERS_AVAILABLE:
+        active = "marian"
+    else:
+        active = "none"
+
+    return {
+        "active_provider": active,
+        "riva_model": riva_model,
+        "riva_configured": bool(nim_key),
+        "marian_available": TRANSFORMERS_AVAILABLE,
+    }
+
+
+def get_supported_languages() -> list[str]:
+    provider = get_active_translation_provider()
+    if provider["active_provider"] == "riva":
+        return sorted(list(RIVA_SUPPORTED_LANGUAGES))
+    return ["en", *SUPPORTED.keys()]
+
+
 def detect_input_language(text: str, requested_lang: str = "auto") -> Tuple[str, list[str]]:
     normalized = (requested_lang or "auto").strip().lower()
     warnings: list[str] = []
@@ -83,7 +124,7 @@ def detect_input_language(text: str, requested_lang: str = "auto") -> Tuple[str,
     if normalized != "auto":
         if normalized not in SUPPORTED_WITH_ENGLISH:
             raise TranslationLayerError(
-                f"Unsupported language '{requested_lang}'. Supported values: auto, en, de, fr, nl, es."
+                f"Unsupported language '{requested_lang}'. Supported values: auto, en, de, fr, nl, es, zh, ja, etc."
             )
         return normalized, warnings
 
@@ -109,13 +150,91 @@ def detect_input_language(text: str, requested_lang: str = "auto") -> Tuple[str,
     return detected, warnings
 
 
-def translate(text: str, src_lang: str, to_english: bool = True) -> str:
-    if not text or src_lang == "en":
-        return text
-    if src_lang not in SUPPORTED:
-        raise TranslationLayerError(f"Unsupported language '{src_lang}'.")
+def _translate_riva(text: str, src_lang: str, target_lang: str = "en") -> str:
+    """
+    Translate text using NVIDIA's nvidia/riva-translate-4b-instruct-v2 model via NIM API.
+    """
+    import requests
+    from backend.nim_guardrails import call_with_nim_limits, load_nim_settings
 
-    model_name = SUPPORTED[src_lang][0 if to_english else 1]
+    nim_settings = load_nim_settings()
+    if not nim_settings.api_key:
+        raise TranslationLayerError("NVIDIA_NIM_API_KEY is not configured for Riva translation.")
+
+    model_name = os.getenv("NVIDIA_RIVA_MODEL", RIVA_MODEL_DEFAULT).strip()
+    lang_pair = f"{src_lang.lower()}-{target_lang.lower()}"
+
+    # nvidia/riva-translate-4b-instruct-v2 expects exact language pair tag (e.g. "en-de", "de-en") as system content
+    system_prompt = lang_pair
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": text},
+    ]
+
+    def _do_post() -> str:
+        url = f"{nim_settings.base_url.rstrip('/')}/chat/completions"
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": 2048,
+        }
+        headers = {
+            "Authorization": f"Bearer {nim_settings.api_key}",
+            "Content-Type": "application/json",
+        }
+        resp = requests.post(url, json=payload, headers=headers, timeout=nim_settings.timeout_seconds)
+        if resp.status_code == 200:
+            content = resp.json()["choices"][0]["message"]["content"].strip()
+            if content.startswith("```") and content.endswith("```"):
+                lines = content.splitlines()
+                if len(lines) >= 3:
+                    content = "\n".join(lines[1:-1]).strip()
+            return content
+        raise RuntimeError(f"Riva translation HTTP {resp.status_code}: {resp.text[:200]}")
+
+    return call_with_nim_limits(_do_post, nim_settings)
+
+
+def translate(
+    text: str,
+    src_lang: str,
+    to_english: bool = True,
+    target_lang: str = "en",
+    backend: str = "auto",
+) -> str:
+    if not text:
+        return text
+
+    tgt = "en" if to_english else (target_lang if target_lang != "en" else src_lang)
+    if src_lang == tgt:
+        return text
+
+    configured_backend = os.getenv("TRANSLATION_BACKEND", backend).lower().strip()
+    nim_api_key = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
+
+    # Try Riva Translate if configured or auto with NIM API key present
+    if configured_backend == "riva" or (configured_backend == "auto" and nim_api_key):
+        try:
+            return _translate_riva(text, src_lang=src_lang, target_lang=tgt)
+        except Exception as exc:
+            riva_model = os.getenv("NVIDIA_RIVA_MODEL", RIVA_MODEL_DEFAULT).strip()
+            logger.warning(
+                "Riva translation (%s) failed: %s. Falling back to MarianMT.",
+                riva_model,
+                exc,
+            )
+
+    # MarianMT Fallback logic
+    if src_lang not in SUPPORTED and tgt not in SUPPORTED:
+        raise TranslationLayerError(f"Unsupported language pair '{src_lang}' -> '{tgt}'.")
+
+    model_key = src_lang if to_english else tgt
+    if model_key not in SUPPORTED:
+        raise TranslationLayerError(f"Unsupported language '{model_key}'.")
+
+    model_name = SUPPORTED[model_key][0 if to_english else 1]
     tokenizer, model = _load_model(model_name)
     translated_chunks: list[str] = []
 
@@ -157,3 +276,4 @@ def _translate_payload(value: Any, language: str, parent_key: str | None = None)
 def build_display_report(report_payload: dict, language: str) -> dict:
     translated_payload = deepcopy(report_payload)
     return _translate_payload(translated_payload, language)
+
