@@ -40,3 +40,4 @@ steps:
       - '--memory=1Gi'
       - '--timeout=300'
       - '--set-secrets=GROQ_API_KEY=clinical-groq-key:latest,NVIDIA_NIM_API_KEY=clinical-nvidia-key:latest,GEMINI_API_KEY=clinical-gemini-key:latest,GOOGLE_CLIENT_ID=clinical-google-client-id:latest'
+      - '--set-env-vars=NVIDIA_RIVA_MODEL=nvidia/riva-translate-4b-instruct-v2,TRANSLATION_BACKEND=auto'
