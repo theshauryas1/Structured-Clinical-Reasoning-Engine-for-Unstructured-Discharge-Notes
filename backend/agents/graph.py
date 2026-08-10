@@ -1,11 +1,12 @@
 from typing import List, Optional, TypedDict
 
+from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
-from backend.agents.confidence import score_confidence
-from backend.agents.contradiction import detect_contradictions
-from backend.agents.differential import generate_differentials
-from backend.agents.meta import synthesize_report
+from backend.agents.confidence import confidence_node
+from backend.agents.contradiction import contradiction_node
+from backend.agents.differential import differential_node
+from backend.agents.meta import meta_node
 from backend.agents.models import (
     AuditStep,
     ClinicalTimeline,
@@ -37,12 +38,12 @@ def create_agent_graph():
     """
     workflow = StateGraph(GraphState)
 
-    workflow.add_node("differential_agent", generate_differentials)
-    workflow.add_node("policy_after_differential", plan_after_differential)
-    workflow.add_node("contradiction_agent", detect_contradictions)
-    workflow.add_node("policy_after_contradiction", plan_after_contradiction)
-    workflow.add_node("confidence_agent", score_confidence)
-    workflow.add_node("meta_agent", synthesize_report)
+    workflow.add_node("differential_agent", differential_node)
+    workflow.add_node("policy_after_differential", RunnableLambda(plan_after_differential))
+    workflow.add_node("contradiction_agent", contradiction_node)
+    workflow.add_node("policy_after_contradiction", RunnableLambda(plan_after_contradiction))
+    workflow.add_node("confidence_agent", confidence_node)
+    workflow.add_node("meta_agent", meta_node)
 
     workflow.set_entry_point("differential_agent")
     workflow.add_edge("differential_agent", "policy_after_differential")
@@ -59,3 +60,4 @@ def run_reasoning_pipeline(note_text: str, note_id: Optional[str] = None) -> Not
     app = create_agent_graph()
     result = app.invoke({"note_text": note_text, "note_id": note_id})
     return result["report"]
+

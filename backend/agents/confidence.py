@@ -75,3 +75,9 @@ def score_confidence(state: dict) -> dict:
         "confidence_scores": confidence_scores,
         "reasoning_trace": trace,
     }
+
+
+from langchain_core.runnables import RunnableLambda
+
+confidence_node = RunnableLambda(score_confidence)
+

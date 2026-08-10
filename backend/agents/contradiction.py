@@ -178,3 +178,9 @@ def detect_contradictions(state: dict) -> dict:
         "contradictions": final_contradictions,
         "reasoning_trace": trace,
     }
+
+
+from langchain_core.runnables import RunnableLambda
+
+contradiction_node = RunnableLambda(detect_contradictions)
+

@@ -1,9 +1,13 @@
 import os
 import re
-from typing import List, Dict
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from backend.llm_gateway import call_llm_gateway
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from backend.llm_gateway import call_llm_gateway, get_langchain_llm
 
 CLINICAL_DISCLAIMER = "[Disclaimer: This assistant is for educational and auditing purposes only. It is not a substitute for professional clinical advice or judgment.]"
 LAYPERSON_DISCLAIMER = "[Disclaimer: This assistant is for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult your doctor for medical concerns.]"
@@ -44,6 +48,55 @@ class ChatRequest(BaseModel):
 
 def call_llm(messages: List[Dict[str, str]]) -> str:
     return call_llm_gateway(messages)
+
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+
+
+class DynamicChatAgentLLM(BaseChatModel):
+    """
+    LangChain BaseChatModel adapter that routes messages through call_llm(),
+    ensuring full support for test monkeypatching and LLM gateway security.
+    """
+
+    def _generate(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Any = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        dict_msgs = []
+        for msg in messages:
+            if isinstance(msg, SystemMessage):
+                dict_msgs.append({"role": "system", "content": msg.content})
+            elif isinstance(msg, HumanMessage):
+                dict_msgs.append({"role": "user", "content": msg.content})
+            elif isinstance(msg, AIMessage):
+                dict_msgs.append({"role": "assistant", "content": msg.content})
+            else:
+                dict_msgs.append({"role": "user", "content": str(msg.content)})
+
+        response_text = call_llm(dict_msgs)
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=response_text))])
+
+    @property
+    def _llm_type(self) -> str:
+        return "chat_agent_llm"
+
+
+def build_chat_chain():
+    """
+    Builds a LangChain LCEL Runnable chain for interactive chat.
+    ChatPromptTemplate | BaseChatModel | StrOutputParser
+    """
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "{system_instruction}\n\n{context_str}"),
+        MessagesPlaceholder(variable_name="history"),
+    ])
+    return prompt | DynamicChatAgentLLM() | StrOutputParser()
 
 
 
@@ -99,27 +152,27 @@ def generate_chat_response(request: ChatRequest, report_json: dict) -> str:
     system_instruction = CLINICAL_SYSTEM_PROMPT if request.mode == "clinical" else LAYPERSON_SYSTEM_PROMPT
     disclaimer = CLINICAL_DISCLAIMER if request.mode == "clinical" else LAYPERSON_DISCLAIMER
     
-    # Prep LLM messages payload
-    llm_messages = [
-        {"role": "system", "content": f"{system_instruction}\n\n{context_str}"}
-    ]
-    
-    # Filter and add conversational history
+    # Filter and construct LangChain message history
+    history_messages = []
     for msg in request.messages:
-        # Ignore initial system prompts from frontend if any to prevent tampering
         if msg.role in {"user", "assistant"}:
-            # Check for prompt injection in user queries
             if msg.role == "user" and check_prompt_injection(msg.content):
                 return (
                     f"{disclaimer}\n\n[Security Alert: Your message contains patterns that violate "
                     f"our safety policy. Please focus your queries specifically on the patient report context.]"
                 )
-            llm_messages.append({"role": msg.role, "content": msg.content})
-            
-    # Call the active LLM
-    raw_response = call_llm(llm_messages)
+            if msg.role == "user":
+                history_messages.append(HumanMessage(content=msg.content))
+            else:
+                history_messages.append(AIMessage(content=msg.content))
+                
+    chat_chain = build_chat_chain()
+    raw_response = chat_chain.invoke({
+        "system_instruction": system_instruction,
+        "context_str": context_str,
+        "history": history_messages,
+    })
     
-    # Enforce disclaimer presence in the response (fallback check)
     if disclaimer not in raw_response:
         raw_response = f"{disclaimer}\n\n{raw_response}"
         

@@ -313,3 +313,50 @@ def call_llm_gateway(
         response_text = response_text[:MAX_OUTPUT_CHARS] + "\n\n[Response truncated]"
 
     return response_text
+
+
+# ─── LangChain BaseChatModel Adapter ──────────────────────────────────────────
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+
+
+class GatewayChatModel(BaseChatModel):
+    """
+    LangChain BaseChatModel adapter that routes all chain calls through
+    the security-hardened, multi-provider LLM gateway (NIM -> Groq -> Gemini).
+    """
+
+    def _generate(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Any = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        dict_msgs = []
+        for msg in messages:
+            if isinstance(msg, SystemMessage):
+                dict_msgs.append({"role": "system", "content": msg.content})
+            elif isinstance(msg, HumanMessage):
+                dict_msgs.append({"role": "user", "content": msg.content})
+            elif isinstance(msg, AIMessage):
+                dict_msgs.append({"role": "assistant", "content": msg.content})
+            else:
+                dict_msgs.append({"role": "user", "content": str(msg.content)})
+
+        response_text = call_llm_gateway(dict_msgs)
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=response_text))])
+
+    @property
+    def _llm_type(self) -> str:
+        return "clinical_reasoning_llm_gateway"
+
+
+def get_langchain_llm() -> BaseChatModel:
+    """
+    Returns a unified LangChain BaseChatModel backed by the multi-provider LLM Gateway.
+    """
+    return GatewayChatModel()
+

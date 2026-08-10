@@ -168,3 +168,9 @@ def generate_differentials(state: dict) -> dict:
         "differentials": ranked,
         "reasoning_trace": trace,
     }
+
+
+from langchain_core.runnables import RunnableLambda
+
+differential_node = RunnableLambda(generate_differentials)
+

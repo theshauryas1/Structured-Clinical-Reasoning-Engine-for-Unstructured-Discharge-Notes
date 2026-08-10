@@ -35,3 +35,9 @@ def synthesize_report(state: dict) -> dict:
         "report": report,
         "reasoning_trace": trace,
     }
+
+
+from langchain_core.runnables import RunnableLambda
+
+meta_node = RunnableLambda(synthesize_report)
+
