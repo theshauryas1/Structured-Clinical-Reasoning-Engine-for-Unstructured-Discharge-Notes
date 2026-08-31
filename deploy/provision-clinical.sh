@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-PROJECT_ID="property-507205"
+PROJECT_ID="clinical-ai-507210"
 LOCATION="us-central1"
 REPO="clinical"
 
