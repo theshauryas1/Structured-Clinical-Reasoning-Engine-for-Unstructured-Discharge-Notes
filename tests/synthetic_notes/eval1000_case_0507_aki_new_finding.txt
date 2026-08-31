@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+56yo female (Linda) admitted with elevated creatinine. Vitals: BP 122/78, HR 88.
+HOSPITAL COURSE:
+Renal function recovered following volume repletion, with normalization of blood urea nitrogen and serum creatinine.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

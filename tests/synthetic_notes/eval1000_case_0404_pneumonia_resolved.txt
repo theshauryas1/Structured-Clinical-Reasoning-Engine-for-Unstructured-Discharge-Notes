@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+50yo female (Patricia) admitted with fever and pleuritic chest pain. Initial vitals: Temp 39.1, HR 104, BP 128/80.
+HOSPITAL COURSE:
+Completed IV antibiotic regimen for community-acquired pneumonia with steady resolution of cough and fever. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - resolved fever, resolved cough, resolved shortness of breath. Discharged on oral antibiotics.

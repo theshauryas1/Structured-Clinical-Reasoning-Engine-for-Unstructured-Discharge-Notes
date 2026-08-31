@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+55yo female (Linda) admitted with dehydration. Vitals: BP 122/78, HR 88.
+HOSPITAL COURSE:
+Patient was admitted with prerenal acute kidney injury. Received aggressive IV fluid resuscitation. Creatinine normalized to baseline.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

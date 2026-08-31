@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+72yo male (Joseph) admitted with acute kidney injury. Vitals: BP 112/70, HR 85.
+HOSPITAL COURSE:
+Treated with fluid hydration and withholding of nephrotoxic medications. Renal panel showed steady daily improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

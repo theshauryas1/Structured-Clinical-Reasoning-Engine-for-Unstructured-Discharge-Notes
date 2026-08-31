@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+89yo male (Richard) admitted with shortness of breath. Vitals: SpO2 88% on RA, HR 96, BP 140/85.
+HOSPITAL COURSE:
+Treated for acute hypoxemic respiratory decompensation. Oxygenation parameters steadily normalized throughout hospital stay.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute hypoxemic respiratory failure - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

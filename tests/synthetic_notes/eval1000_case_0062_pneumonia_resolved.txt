@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+85yo male (Thomas) admitted with fever and chills. Initial vitals: Temp 39.1, HR 104, BP 128/80.
+HOSPITAL COURSE:
+Treated with empiric broad-spectrum antimicrobial therapy for lobar pneumonia. Oxygenation normalized and sputum cleared. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - resolved fever, resolved cough, resolved shortness of breath. Discharged on oral antibiotics.

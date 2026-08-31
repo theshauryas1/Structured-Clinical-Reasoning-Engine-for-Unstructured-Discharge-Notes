@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-PROJECT_ID="clinical-ai-501918"
+PROJECT_ID="property-507205"
 LOCATION="us-central1"
 REPO="clinical"
 
@@ -48,18 +48,20 @@ create_secret_if_missing() {
 GROQ_API_KEY_VAL="${GROQ_API_KEY:-}"
 NVIDIA_API_KEY_VAL="${NVIDIA_NIM_API_KEY:-}"
 GEMINI_API_KEY_VAL="${GEMINI_API_KEY:-}"
+GOOGLE_CLIENT_ID_VAL="${GOOGLE_CLIENT_ID:-}"
 
 # Parse from .env if variables are empty
 if [ -f .env ]; then
   [ -z "$GROQ_API_KEY_VAL" ] && GROQ_API_KEY_VAL=$(grep "^GROQ_API_KEY=" .env | cut -d'=' -f2- || true)
   [ -z "$NVIDIA_API_KEY_VAL" ] && NVIDIA_API_KEY_VAL=$(grep "^NVIDIA_NIM_API_KEY=" .env | cut -d'=' -f2- || true)
   [ -z "$GEMINI_API_KEY_VAL" ] && GEMINI_API_KEY_VAL=$(grep "^GEMINI_API_KEY=" .env | cut -d'=' -f2- || true)
+  [ -z "$GOOGLE_CLIENT_ID_VAL" ] && GOOGLE_CLIENT_ID_VAL=$(grep "^GOOGLE_CLIENT_ID=" .env | cut -d'=' -f2- || true)
 fi
 
 create_secret_if_missing "clinical-groq-key" "$GROQ_API_KEY_VAL"
 create_secret_if_missing "clinical-nvidia-key" "$NVIDIA_API_KEY_VAL"
 create_secret_if_missing "clinical-gemini-key" "$GEMINI_API_KEY_VAL"
-create_secret_if_missing "clinical-google-client-id" ""
+create_secret_if_missing "clinical-google-client-id" "$GOOGLE_CLIENT_ID_VAL"
 
 # Grant Secret Manager Secret Accessor to service accounts
 echo "👤 Configuring IAM permissions..."
@@ -78,5 +80,21 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$CLOUDBUILD_SA" \
   --role="roles/secretmanager.secretAccessor"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$CLOUDBUILD_SA" \
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$CLOUDBUILD_SA" \
+  --role="roles/iam.serviceAccountUser"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$COMPUTE_SA" \
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$COMPUTE_SA" \
+  --role="roles/iam.serviceAccountUser"
 
 echo "🎉 Google Cloud environment provisioned for $PROJECT_ID!"

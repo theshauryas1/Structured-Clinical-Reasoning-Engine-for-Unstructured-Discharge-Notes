@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+56yo male (Michael) admitted with chest pain. Vitals: Temp 38.5, HR 92, BP 115/70.
+HOSPITAL COURSE:
+Completed IV antibiotic regimen for community-acquired pneumonia with steady resolution of cough and fever.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - primary condition improved.
+2. New onset acute respiratory failure - acute hypoxia requiring 3L nasal cannula oxygen at discharge.

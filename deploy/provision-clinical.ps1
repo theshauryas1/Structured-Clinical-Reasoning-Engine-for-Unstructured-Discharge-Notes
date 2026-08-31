@@ -1,4 +1,4 @@
-$ProjectID = "clinical-ai-501918"
+$ProjectID = "property-507205"
 $Location = "us-central1"
 $Repo = "clinical"
 
@@ -45,19 +45,21 @@ function Create-Secret-If-Missing ($Name, $Value) {
 $GroqKey = ""
 $NvidiaKey = ""
 $GeminiKey = ""
+$GoogleClientId = ""
 if (Test-Path .env) {
   $envContent = Get-Content .env
   foreach ($line in $envContent) {
     if ($line -match "^GROQ_API_KEY=(.*)") { $GroqKey = $Matches[1] }
     if ($line -match "^NVIDIA_NIM_API_KEY=(.*)") { $NvidiaKey = $Matches[1] }
     if ($line -match "^GEMINI_API_KEY=(.*)") { $GeminiKey = $Matches[1] }
+    if ($line -match "^GOOGLE_CLIENT_ID=(.*)") { $GoogleClientId = $Matches[1] }
   }
 }
 
 Create-Secret-If-Missing "clinical-groq-key" $GroqKey
 Create-Secret-If-Missing "clinical-nvidia-key" $NvidiaKey
 Create-Secret-If-Missing "clinical-gemini-key" $GeminiKey
-Create-Secret-If-Missing "clinical-google-client-id" "your_google_client_id_here"
+Create-Secret-If-Missing "clinical-google-client-id" $GoogleClientId
 
 # Configure IAM permissions
 Write-Host "Configure IAM permissions..."
@@ -67,7 +69,7 @@ $ProjectNumber = $ProjectNumber.Trim()
 $ComputeSA = "${ProjectNumber}-compute@developer.gserviceaccount.com"
 $CloudBuildSA = "${ProjectNumber}@cloudbuild.gserviceaccount.com"
 
-# Grant access
+# Grant Secret Manager access
 gcloud projects add-iam-policy-binding $ProjectID `
   --member="serviceAccount:$ComputeSA" `
   --role="roles/secretmanager.secretAccessor"
@@ -75,5 +77,22 @@ gcloud projects add-iam-policy-binding $ProjectID `
 gcloud projects add-iam-policy-binding $ProjectID `
   --member="serviceAccount:$CloudBuildSA" `
   --role="roles/secretmanager.secretAccessor"
+
+# Grant Cloud Build permission to deploy to Cloud Run and act as service account
+gcloud projects add-iam-policy-binding $ProjectID `
+  --member="serviceAccount:$CloudBuildSA" `
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding $ProjectID `
+  --member="serviceAccount:$CloudBuildSA" `
+  --role="roles/iam.serviceAccountUser"
+
+gcloud projects add-iam-policy-binding $ProjectID `
+  --member="serviceAccount:$ComputeSA" `
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding $ProjectID `
+  --member="serviceAccount:$ComputeSA" `
+  --role="roles/iam.serviceAccountUser"
 
 Write-Host "Google Cloud environment provisioned for $ProjectID!"

@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+87yo male (Joseph) admitted with productive cough. Vitals: Temp 38.5, HR 92, BP 115/70.
+HOSPITAL COURSE:
+Treated with empiric broad-spectrum antimicrobial therapy for lobar pneumonia. Oxygenation normalized and sputum cleared.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

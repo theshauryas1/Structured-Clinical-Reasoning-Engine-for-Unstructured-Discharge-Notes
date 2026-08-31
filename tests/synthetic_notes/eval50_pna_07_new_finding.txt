@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+80yo female with community-acquired pneumonia, productive cough, and fever.
+HOSPITAL COURSE:
+Infection cleared with antibiotic regimen.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - resolved.
+2. New onset acute respiratory failure - acute hypoxia requiring 3L oxygen at discharge.

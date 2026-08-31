@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+55yo female (Susan) admitted with shortness of breath. Vitals: Temp 39.1, HR 104, BP 128/80.
+HOSPITAL COURSE:
+Treated with empiric broad-spectrum antimicrobial therapy for lobar pneumonia. Oxygenation normalized and sputum cleared.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

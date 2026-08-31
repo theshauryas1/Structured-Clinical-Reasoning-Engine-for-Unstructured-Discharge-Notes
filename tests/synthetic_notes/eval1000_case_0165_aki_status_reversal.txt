@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+66yo female (Susan) admitted with acute kidney injury. Vitals: BP 122/78, HR 88.
+HOSPITAL COURSE:
+acute kidney injury improved significantly on hospital day 2 with medical management.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - discharge lab work shows worsening creatinine up to 3.6 mg/dL and acute deterioration.

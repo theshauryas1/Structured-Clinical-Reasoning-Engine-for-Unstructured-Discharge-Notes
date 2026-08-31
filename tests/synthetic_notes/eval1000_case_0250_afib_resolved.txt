@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+69yo male (James) admitted with atrial fibrillation and mild chest discomfort. Initial vitals: HR 138, BP 130/85.
+HOSPITAL COURSE:
+Rate control achieved with metoprolol infusion. Anticoagulation started according to CHA2DS2-VASc score. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - rate controlled on metoprolol, palpitations resolved. Discharged on oral anticoagulation.

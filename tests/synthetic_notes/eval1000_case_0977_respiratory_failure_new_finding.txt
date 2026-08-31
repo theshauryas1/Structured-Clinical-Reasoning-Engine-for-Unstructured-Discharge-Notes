@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+47yo male (David) admitted with acute respiratory failure. Vitals: SpO2 85% on RA, HR 108, BP 128/78.
+HOSPITAL COURSE:
+Admitted with acute respiratory failure requiring high-flow oxygen. Responded to medical therapy and successfully weaned to room air.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute hypoxemic respiratory failure - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+80yo female (Elizabeth) admitted with fever and chills. Initial vitals: Temp 38.8, HR 98, BP 120/75.
+HOSPITAL COURSE:
+Completed IV antibiotic regimen for community-acquired pneumonia with steady resolution of cough and fever. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - resolved fever, resolved cough, resolved shortness of breath. Discharged on oral antibiotics.

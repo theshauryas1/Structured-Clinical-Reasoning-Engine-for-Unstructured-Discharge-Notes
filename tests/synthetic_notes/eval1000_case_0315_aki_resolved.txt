@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+76yo female (Patricia) admitted with elevated creatinine and nausea. Initial vitals: BP 108/65, HR 90.
+HOSPITAL COURSE:
+Patient was admitted with prerenal acute kidney injury. Received aggressive IV fluid resuscitation. Creatinine normalized to baseline. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - resolved, creatinine normalized to 1.0 mg/dL. Discharged home.

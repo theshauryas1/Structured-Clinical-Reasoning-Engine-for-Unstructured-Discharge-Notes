@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+58yo male (Robert) admitted with shortness of breath. Vitals: Temp 38.8, HR 98, BP 120/75.
+HOSPITAL COURSE:
+Treated with empiric broad-spectrum antimicrobial therapy for lobar pneumonia. Oxygenation normalized and sputum cleared.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

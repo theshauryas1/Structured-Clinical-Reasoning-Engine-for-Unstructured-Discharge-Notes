@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+69yo male (Robert) admitted with acute respiratory failure. Vitals: SpO2 85% on RA, HR 108, BP 128/78.
+HOSPITAL COURSE:
+Treated for acute hypoxemic respiratory decompensation. Oxygenation parameters steadily normalized throughout hospital stay.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute hypoxemic respiratory failure - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

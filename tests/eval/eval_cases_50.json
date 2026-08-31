@@ -1,0 +1,320 @@
+[
+  {
+    "note_file": "eval50_stroke_01_resolved.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_stroke_02_missing_symptom.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_03_new_finding.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_04_status_reversal.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_05_resolved.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_stroke_06_missing_symptom.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_07_new_finding.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_08_status_reversal.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_stroke_09_resolved.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_stroke_10_missing_symptom.txt",
+    "expected_top_differential": "Acute ischemic stroke",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_01_resolved.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_pna_02_missing_symptom.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_03_new_finding.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_04_status_reversal.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_05_resolved.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_pna_06_missing_symptom.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_07_new_finding.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_08_status_reversal.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_pna_09_resolved.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_pna_10_missing_symptom.txt",
+    "expected_top_differential": "Community-acquired pneumonia",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_01_resolved.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_aki_02_status_reversal.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_03_new_finding.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_04_missing_symptom.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_05_resolved.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_aki_06_status_reversal.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_07_new_finding.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_aki_08_resolved.txt",
+    "expected_top_differential": "Acute kidney injury",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_afib_01_resolved.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_afib_02_new_finding.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_afib_03_missing_symptom.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_afib_04_status_reversal.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_afib_05_resolved.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_afib_06_new_finding.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_afib_07_missing_symptom.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_afib_08_resolved.txt",
+    "expected_top_differential": "Atrial fibrillation",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_resp_01_resolved.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_resp_02_new_finding.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_resp_03_missing_symptom.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_resp_04_status_reversal.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_resp_05_resolved.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_resp_06_new_finding.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_resp_07_status_reversal.txt",
+    "expected_top_differential": "Acute hypoxemic respiratory failure",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_tka_01_resolved.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_tka_02_new_finding.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_tka_03_status_reversal.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  },
+  {
+    "note_file": "eval50_tka_04_missing_symptom.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": [
+      "missing_symptom"
+    ]
+  },
+  {
+    "note_file": "eval50_tka_05_resolved.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": []
+  },
+  {
+    "note_file": "eval50_tka_06_new_finding.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": [
+      "new_finding"
+    ]
+  },
+  {
+    "note_file": "eval50_tka_07_status_reversal.txt",
+    "expected_top_differential": "Post-operative recovery after total knee arthroplasty",
+    "expected_contradiction_types": [
+      "status_reversal"
+    ]
+  }
+]

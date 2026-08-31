@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+37yo male (Richard) admitted with right-sided weakness. Vitals: BP 172/95, HR 78.
+HOSPITAL COURSE:
+Patient was admitted to Neuro ICU and received standard stroke care protocol with antiplatelet therapy. Neurological status stabilized.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute ischemic stroke - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

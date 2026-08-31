@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+39yo male (Thomas) admitted with chest pain. Vitals: Temp 39.1, HR 104, BP 128/80.
+HOSPITAL COURSE:
+Patient was admitted with community-acquired pneumonia and treated with 5 days of IV ceftriaxone and azithromycin. Defervesced rapidly.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - primary condition improved.
+2. New onset acute respiratory failure - acute hypoxia requiring 3L nasal cannula oxygen at discharge.

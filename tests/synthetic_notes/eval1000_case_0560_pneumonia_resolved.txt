@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+73yo male (Richard) admitted with fever and chills. Initial vitals: Temp 39.1, HR 104, BP 128/80.
+HOSPITAL COURSE:
+Patient was admitted with community-acquired pneumonia and treated with 5 days of IV ceftriaxone and azithromycin. Defervesced rapidly. Symptoms showed marked clinical improvement.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Community-acquired pneumonia - resolved fever, resolved cough, resolved shortness of breath. Discharged on oral antibiotics.

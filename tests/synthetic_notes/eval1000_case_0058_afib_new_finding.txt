@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+51yo male (John) admitted with atrial fibrillation. Vitals: HR 132, BP 138/88.
+HOSPITAL COURSE:
+Patient was admitted for rate control of acute atrial fibrillation. Managed with IV diltiazem followed by oral beta-blocker therapy. Normal sinus rhythm restored.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

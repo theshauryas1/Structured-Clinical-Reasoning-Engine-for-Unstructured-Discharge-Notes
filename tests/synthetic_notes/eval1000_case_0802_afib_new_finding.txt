@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+42yo male (William) admitted with irregular heart rate. Vitals: HR 145, BP 124/80.
+HOSPITAL COURSE:
+Rate control achieved with metoprolol infusion. Anticoagulation started according to CHA2DS2-VASc score.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - primary condition improved.
+2. New onset acute respiratory failure - acute hypoxia requiring 3L nasal cannula oxygen at discharge.

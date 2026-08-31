@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+37yo female (Jessica) admitted with shortness of breath. Vitals: SpO2 86% on RA, HR 102, BP 134/82.
+HOSPITAL COURSE:
+Admitted with acute respiratory failure requiring high-flow oxygen. Responded to medical therapy and successfully weaned to room air.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute hypoxemic respiratory failure - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+47yo male (William) admitted with palpitations. Vitals: HR 145, BP 124/80.
+HOSPITAL COURSE:
+Rate control achieved with metoprolol infusion. Anticoagulation started according to CHA2DS2-VASc score.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

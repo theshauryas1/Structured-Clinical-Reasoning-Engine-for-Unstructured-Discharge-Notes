@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+88yo male (Robert) admitted with atrial fibrillation. Vitals: HR 138, BP 130/85.
+HOSPITAL COURSE:
+atrial fibrillation improved significantly on hospital day 2 with medical management.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - discharge monitoring indicates worsening palpitations and rapid ventricular response at rest.

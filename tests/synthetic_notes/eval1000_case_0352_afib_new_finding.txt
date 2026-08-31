@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+39yo male (James) admitted with atrial fibrillation. Vitals: HR 145, BP 124/80.
+HOSPITAL COURSE:
+Successfully treated with rate-controlling agents. Telemetry demonstrated sustained rate control and cessation of palpitations.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - primary condition improved.
+2. New onset atrial fibrillation - developed rapid irregular palpitations and tachycardia at discharge.

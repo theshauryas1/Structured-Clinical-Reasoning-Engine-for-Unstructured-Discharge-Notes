@@ -1,0 +1,6 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+74yo male presenting with prerenal acute kidney injury, creatinine 2.7.
+HOSPITAL COURSE:
+Responded rapidly to IV crystalloid therapy. Creatinine normalized to 1.1.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - resolved, creatinine normal. Patient discharged home.

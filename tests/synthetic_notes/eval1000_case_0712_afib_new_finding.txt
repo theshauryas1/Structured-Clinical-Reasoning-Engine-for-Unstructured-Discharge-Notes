@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+85yo male (Charles) admitted with irregular heart rate. Vitals: HR 138, BP 130/85.
+HOSPITAL COURSE:
+Rate control achieved with metoprolol infusion. Anticoagulation started according to CHA2DS2-VASc score.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Atrial fibrillation - primary condition improved.
+2. New onset acute kidney injury - acute creatinine rise documented before discharge requiring follow-up.

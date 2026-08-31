@@ -1,0 +1,7 @@
+ADMISSION DIAGNOSIS AND FINDINGS:
+59yo male (David) admitted with elevated creatinine. Vitals: BP 112/70, HR 85.
+HOSPITAL COURSE:
+Renal function recovered following volume repletion, with normalization of blood urea nitrogen and serum creatinine.
+DISCHARGE DIAGNOSES AND STATUS:
+1. Acute kidney injury - primary condition improved.
+2. New onset acute respiratory failure - acute hypoxia requiring 3L nasal cannula oxygen at discharge.
