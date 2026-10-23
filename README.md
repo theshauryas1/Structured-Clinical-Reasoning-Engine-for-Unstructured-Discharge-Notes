@@ -1,5 +1,7 @@
 # Clinical Reasoning Engine
 
+https://github.com/user-attachments/assets/7eeb2afd-9bd1-4a06-a9d1-56bd3e20cbd4
+
 An end-to-end MVP for extracting structured clinical timelines from discharge notes, detecting temporal contradictions, generating differential hypotheses, scoring confidence, and exposing the results through a FastAPI backend plus React audit UI.
 
 ## Documentation Directory
