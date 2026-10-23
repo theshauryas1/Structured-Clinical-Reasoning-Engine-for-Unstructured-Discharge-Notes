@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Clinical Reasoning Engine Architecture & Launch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ground: #030712;
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-cyan: rgba(6, 182, 212, 0.4);
+        --border-emerald: rgba(16, 185, 129, 0.4);
+        --border-indigo: rgba(99, 102, 241, 0.4);
+        --border-amber: rgba(245, 158, 11, 0.4);
+        --border-crimson: rgba(244, 63, 94, 0.4);
+        --ink: #ffffff;
+        --ink-muted: #94a3b8;
+        --cyan: #06b6d4;
+        --emerald: #10b981;
+        --indigo: #6366f1;
+        --amber: #f59e0b;
+        --crimson: #f43f5e;
+        --purple: #a855f7;
+        --font-sans: 'Inter', -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+        font-family: var(--font-sans);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: radial-gradient(circle at 50% 35%, #081a2e 0%, #030712 85%);
+        overflow: hidden;
+      }
+
+      /* Subtle Medical Grid Background */
+      .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-size: 60px 60px;
+        background-image: 
+          linear-gradient(to right, rgba(6, 182, 212, 0.02) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+        pointer-events: none;
+      }
+
+      /* Ambient Center Glow */
+      .ambient-glow {
+        position: absolute;
+        width: 1100px;
+        height: 1100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.07) 0%, rgba(99, 102, 241, 0.05) 45%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        filter: blur(80px);
+        pointer-events: none;
+      }
+
+      /* Top Persistent Header Bar */
+      .top-nav {
+        position: absolute;
+        top: 36px;
+        left: 80px;
+        right: 80px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+      }
+
+      .brand-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--font-mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: var(--ink);
+      }
+
+      .brand-pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 12px var(--cyan);
+      }
+
+      .timecode-badge {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink-muted);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 6px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--border-subtle);
+      }
+
+      /* Base Scene Container */
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 90px 60px;
+        opacity: 0;
+        transform: scale(0.98);
+      }
+
+      /* Section Header */
+      .scene-header {
+        text-align: center;
+        margin-bottom: 34px;
+      }
+
+      .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 22px;
+        border-radius: 9999px;
+        background: rgba(6, 182, 212, 0.1);
+        border: 1px solid var(--border-cyan);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--cyan);
+        margin-bottom: 14px;
+      }
+
+      .tag-pill.emerald {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--border-emerald);
+        color: var(--emerald);
+      }
+
+      .tag-pill.indigo {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--border-indigo);
+        color: var(--indigo);
+      }
+
+      .tag-pill.amber {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: var(--border-amber);
+        color: var(--amber);
+      }
+
+      .tag-pill.crimson {
+        background: rgba(244, 63, 94, 0.1);
+        border-color: var(--border-crimson);
+        color: var(--crimson);
+      }
+
+      .scene-title {
+        font-size: 46px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+        background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .scene-subtitle {
+        font-size: 18px;
+        color: var(--ink-muted);
+        font-weight: 500;
+        margin-top: 8px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.4;
+      }
+
+      /* Glass Panel Cards */
+      .glass-card {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+      }
+
+      /* ─── SCENE 1: HOOK ─── */
+      #scene-1 .hero-box {
+        text-align: center;
+        max-width: 1240px;
+      }
+
+      #scene-1 .hero-title {
+        font-size: 78px;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 16px;
+      }
+
+      #scene-1 .hero-tagline {
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--cyan);
+        letter-spacing: -0.01em;
+        margin-bottom: 20px;
+      }
+
+      #scene-1 .hero-desc {
+        font-size: 20px;
+        color: var(--ink-muted);
+        line-height: 1.6;
+        max-width: 980px;
+        margin: 0 auto 44px;
+      }
+
+      #scene-1 .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        width: 100%;
+        max-width: 1400px;
+      }
+
+      .stat-item {
+        padding: 24px 28px;
+        text-align: left;
+        border-left: 3px solid var(--cyan);
+      }
+
+      .stat-num {
+        font-family: var(--font-mono);
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--ink);
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-muted);
+      }
+
+      /* ─── SCENE 2: INGESTION ─── */
+      #scene-2 .ingest-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        width: 100%;
+        max-width: 1560px;
+      }
+
+      .ingest-card {
+        padding: 28px 24px;
+        display: flex;
+        flex-direction: column;
+        border-top: 3px solid var(--cyan);
+      }
+
+      .ingest-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--font-mono);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 12px;
+      }
+
+      .ingest-desc {
+        font-size: 13px;
+        color: var(--ink-muted);
+        line-height: 1.5;
+        flex: 1;
+      }
+
+      .ingest-badge {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        margin-top: 14px;
+        display: inline-block;
+      }
+
+      /* ─── SCENE 3: LANGGRAPH PIPELINE ─── */
+      #scene-3 .pipeline-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 18px;
+        width: 100%;
+        max-width: 1620px;
+      }
+
+      .agent-node-card {
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        border-top: 3px solid var(--indigo);
+      }
+
+      .node-num {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--indigo);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+
+      .node-title {
+        font-family: var(--font-mono);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 8px;
+      }
+
+      .node-desc {
+        font-size: 12px;
+        color: var(--ink-muted);
+        line-height: 1.45;
+        flex: 1;
+      }
+
+      /* ─── SCENE 4: DATABASE & VECTOR RAG ─── */
+      #scene-4 .db-layout {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 32px;
+        width: 100%;
+        max-width: 1560px;
+      }
+
+      .db-col-card {
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .table-row-item {
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+
+      /* ─── SCENE 5: CONTRADICTIONS & SAFETY ─── */
+      #scene-5 .safety-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 32px;
+        width: 100%;
+        max-width: 1560px;
+      }
+
+      .safety-card {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .terminal-frame {
+        background: #050a17;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 18px 22px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.6;
+        color: #94a3b8;
+        margin-top: 14px;
+        flex: 1;
+      }
+
+      /* ─── SCENE 6: BENCHMARKS ─── */
+      #scene-6 .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        width: 100%;
+        max-width: 1560px;
+      }
+
+      .metric-card-lg {
+        padding: 34px 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .metric-val {
+        font-family: var(--font-mono);
+        font-size: 54px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin-bottom: 12px;
+      }
+
+      .metric-tagline {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      .metric-details {
+        font-size: 13px;
+        color: var(--ink-muted);
+        line-height: 1.4;
+      }
+
+      /* ─── SCENE 7: CTA ─── */
+      #scene-7 .cta-card {
+        padding: 56px 80px;
+        max-width: 1280px;
+        width: 100%;
+        text-align: center;
+      }
+
+      #scene-7 .cta-links-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin: 36px 0;
+      }
+
+      .link-pill {
+        padding: 20px 24px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        text-align: left;
+      }
+
+      .link-pill-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--cyan);
+        margin-bottom: 4px;
+      }
+
+      .link-pill-url {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--ink);
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="grid-overlay"></div>
+      <div class="ambient-glow"></div>
+
+      <!-- Top Persistent Bar -->
+      <div class="top-nav">
+        <div class="brand-badge">
+          <div class="brand-pulse"></div>
+          <span>CLINICAL REASONING ENGINE &bull; LANGGRAPH &amp; FASTAPI</span>
+        </div>
+        <div class="timecode-badge" id="timecode">00.0s / 52.0s</div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 1: THE HOOK & CORE VALUE (0.0s - 7.4s)
+           ========================================== -->
+      <div class="scene" id="scene-1">
+        <div class="hero-box">
+          <div class="tag-pill">Clinical NLP &amp; Multi-Agent Diagnostics</div>
+          <h1 class="hero-title">Clinical Reasoning Engine</h1>
+          <div class="hero-tagline">Automated Timeline Extraction, Contradiction Detection &amp; Calibrated Differentials</div>
+          <p class="hero-desc">
+            Discharge summaries are rushed, dense, and error-prone. Our multi-agent engine builds admission-to-discharge clinical timelines, flags latent contradictions, and delivers feature-calibrated differential diagnoses.
+          </p>
+        </div>
+
+        <div class="stats-row">
+          <div class="glass-card stat-item">
+            <div class="stat-num" style="color: var(--cyan);">1,000 Cases</div>
+            <div class="stat-label">Evaluated Benchmark</div>
+          </div>
+          <div class="glass-card stat-item">
+            <div class="stat-num" style="color: var(--emerald);">94.2%</div>
+            <div class="stat-label">Top-1 Diagnostic Accuracy</div>
+          </div>
+          <div class="glass-card stat-item">
+            <div class="stat-num" style="color: var(--indigo);">100.0%</div>
+            <div class="stat-label">Top-3 Condition Coverage</div>
+          </div>
+          <div class="glass-card stat-item">
+            <div class="stat-num" style="color: var(--amber);">54.9 / sec</div>
+            <div class="stat-label">Throughput Processing Speed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 2: MULTIMODAL INGESTION (7.4s - 14.8s)
+           ========================================== -->
+      <div class="scene" id="scene-2">
+        <div class="scene-header">
+          <div class="tag-pill cyan">Multimodal Ingestion Pipeline</div>
+          <h2 class="scene-title">Multimodal Ingestion &amp; Edge Translation</h2>
+          <div class="scene-subtitle">
+            Ingesting messy real-world EHR records across formats, languages, and dictations into a standardized pipeline.
+          </div>
+        </div>
+
+        <div class="ingest-grid">
+          <div class="glass-card ingest-card">
+            <div class="ingest-card-title">
+              <span>&bull; PDF &amp; Document OCR</span>
+            </div>
+            <div class="ingest-desc">
+              PyMuPDF native text extraction with automatic fallback to local Tesseract OCR when scanned or image-based clinical records are detected.
+            </div>
+            <div class="ingest-badge" style="background: rgba(6, 182, 212, 0.15); color: var(--cyan);">PyMuPDF + Tesseract</div>
+          </div>
+
+          <div class="glass-card ingest-card">
+            <div class="ingest-card-title">
+              <span>&bull; Clinician Audio Dictation</span>
+            </div>
+            <div class="ingest-desc">
+              Serverless Whisper STT transcribing doctor voice dictation (.wav, .mp3, .m4a) with a mandatory verification gate prior to reasoning execution.
+            </div>
+            <div class="ingest-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--emerald);">Whisper API STT</div>
+          </div>
+
+          <div class="glass-card ingest-card">
+            <div class="ingest-card-title">
+              <span>&bull; Edge MarianMT Translation</span>
+            </div>
+            <div class="ingest-desc">
+              Helsinki-NLP MarianMT models translate DE, FR, NL, and ES notes into English for stable clinical semantics, re-translating output for display.
+            </div>
+            <div class="ingest-badge" style="background: rgba(99, 102, 241, 0.15); color: var(--indigo);">MarianMT Transformers</div>
+          </div>
+
+          <div class="glass-card ingest-card">
+            <div class="ingest-card-title">
+              <span>&bull; Clinical NER Extraction</span>
+            </div>
+            <div class="ingest-desc">
+              ScispaCy <code>en_core_sci_sm</code> clinical model mapping medical entities, symptoms, and lab values with deterministic regex fallbacks.
+            </div>
+            <div class="ingest-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--amber);">scispaCy NER</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 3: LANGGRAPH MULTI-AGENT STATE GRAPH (14.8s - 22.2s)
+           ========================================== -->
+      <div class="scene" id="scene-3">
+        <div class="scene-header">
+          <div class="tag-pill indigo">Multi-Agent Orchestration</div>
+          <h2 class="scene-title">LangGraph Multi-Agent State Graph</h2>
+          <div class="scene-subtitle">
+            Decoupled clinical reasoning agents with intermediate routing policies and dynamic state transitions.
+          </div>
+        </div>
+
+        <div class="pipeline-grid">
+          <div class="glass-card agent-node-card">
+            <div class="node-num">Node 1 &bull; Ingestion</div>
+            <div class="node-title">Timeline Segmenter</div>
+            <div class="node-desc">
+              Extracts chronological stages: Admission &rarr; Hospital Course &rarr; Discharge. Resolves event statuses (active, resolved, worsening).
+            </div>
+          </div>
+
+          <div class="glass-card agent-node-card">
+            <div class="node-num">Node 2 &bull; Retrieval</div>
+            <div class="node-title">Differential Agent</div>
+            <div class="node-desc">
+              Matches timeline findings against clinical guideline vectors. Re-ranks candidate diagnoses using learned linear feature weights.
+            </div>
+          </div>
+
+          <div class="glass-card agent-node-card" style="border-top-color: var(--crimson);">
+            <div class="node-num" style="color: var(--crimson);">Node 3 &bull; Quality Gate</div>
+            <div class="node-title">Contradiction Agent</div>
+            <div class="node-desc">
+              Audits cross-sectional record for status reversals, missing admission symptoms, and unannounced new discharge findings.
+            </div>
+          </div>
+
+          <div class="glass-card agent-node-card" style="border-top-color: var(--emerald);">
+            <div class="node-num" style="color: var(--emerald);">Node 4 &bull; Calibration</div>
+            <div class="node-title">Confidence Agent</div>
+            <div class="node-desc">
+              Executes 8 perturbed passes to compute prediction variance (uncertainty) and runs logistic calibrator for true probabilities.
+            </div>
+          </div>
+
+          <div class="glass-card agent-node-card" style="border-top-color: var(--cyan);">
+            <div class="node-num" style="color: var(--cyan);">Node 5 &bull; Synthesis</div>
+            <div class="node-title">Meta Agent</div>
+            <div class="node-desc">
+              Synthesizes validated timeline, contradiction evidence cards, and calibrated differentials into final structured JSON.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 4: DATABASE & VECTOR RAG (22.2s - 29.6s)
+           ========================================== -->
+      <div class="scene" id="scene-4">
+        <div class="scene-header">
+          <div class="tag-pill emerald">Storage &amp; Retrieval</div>
+          <h2 class="scene-title">Database Layout &amp; Hybrid Vector RAG</h2>
+          <div class="scene-subtitle">
+            Relational storage parity with 1024-dimension pgvector embeddings for rapid guideline retrieval.
+          </div>
+        </div>
+
+        <div class="db-layout">
+          <div class="glass-card db-col-card">
+            <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--emerald); text-transform: uppercase;">
+              Relational Storage &amp; Audit Schemas
+            </span>
+            <div class="table-row-item">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700;">clinical_notes</span>
+              <span style="font-size: 12px; color: var(--ink-muted);">Raw notes, user sessions &amp; warnings</span>
+            </div>
+            <div class="table-row-item">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700;">reasoning_outputs</span>
+              <span style="font-size: 12px; color: var(--ink-muted);">Native JSONB for timelines, differentials &amp; traces</span>
+            </div>
+            <div class="table-row-item">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700;">chats &amp; chat_messages</span>
+              <span style="font-size: 12px; color: var(--ink-muted);">Clinical vs. Layperson conversational Q&amp;A</span>
+            </div>
+            <div class="table-row-item">
+              <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700;">SQLite / Postgres Parity</span>
+              <span style="font-size: 12px; color: var(--emerald);">Zero-dependency local SQLite + Cloud SQL</span>
+            </div>
+          </div>
+
+          <div class="glass-card db-col-card">
+            <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--cyan); text-transform: uppercase;">
+              Vector RAG &amp; LLM Guardrails
+            </span>
+            <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="padding: 12px 16px; border-radius: 10px; background: rgba(6, 182, 212, 0.05); border: 1px solid var(--border-cyan);">
+                <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--cyan); margin-bottom: 4px;">
+                  PostgreSQL pgvector (1024-dim)
+                </div>
+                <div style="font-size: 12px; color: var(--ink-muted); line-height: 1.4;">
+                  Embeds clinical guidelines; uses cosine distance <code>(&lt;=&gt;)</code> for sub-millisecond retrieval with local TF-IDF fallback.
+                </div>
+              </div>
+
+              <div style="padding: 12px 16px; border-radius: 10px; background: rgba(245, 158, 11, 0.05); border: 1px solid var(--border-amber);">
+                <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--amber); margin-bottom: 4px;">
+                  Thread-Safe LLM Rate Pacing
+                </div>
+                <div style="font-size: 12px; color: var(--ink-muted); line-height: 1.4;">
+                  Token pacing queues for Groq, NVIDIA NIM, and Gemini APIs prevent 429 rate limit exceptions under high concurrency.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 5: CONTRADICTIONS & SAFETY (29.6s - 37.0s)
+           ========================================== -->
+      <div class="scene" id="scene-5">
+        <div class="scene-header">
+          <div class="tag-pill crimson">Clinical Safety &amp; Auditing</div>
+          <h2 class="scene-title">Contradiction Auditing &amp; Calibrated Confidence</h2>
+          <div class="scene-subtitle">
+            Pinpointing temporal inconsistencies and unaddressed symptoms with exact sentence pointers.
+          </div>
+        </div>
+
+        <div class="safety-grid">
+          <div class="glass-card safety-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--crimson);">
+                Temporal Contradiction Flag
+              </span>
+              <span class="tag-pill crimson" style="padding: 2px 10px; font-size: 11px;">Status Reversal</span>
+            </div>
+            <div class="terminal-frame">
+              <div style="color: #64748b;">// Auditing patient clinical timeline...</div>
+              <div>&bull; Admission Event: Severe dyspnea &amp; bilateral wheezing <span style="color: var(--amber);">[ACTIVE]</span></div>
+              <div>&bull; Hospital Course: "Respiratory distress resolved on Day 2" <span style="color: var(--emerald);">[RESOLVED]</span></div>
+              <div style="color: #f87171;">&bull; Discharge Summary: "Discharged home on continuous O2 therapy" <span style="color: var(--crimson);">[CONFLICT]</span></div>
+              <div style="margin-top: 10px; color: #ef4444; font-weight: 700;">
+                [ALERT] Status reversal detected. Oxygen dependence contradicts marked resolution.
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card safety-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--emerald);">
+                Calibrated Confidence Scoring
+              </span>
+              <span class="tag-pill emerald" style="padding: 2px 10px; font-size: 11px;">Logistic Calibrator</span>
+            </div>
+            <div class="terminal-frame">
+              <div>&gt; Hypothesis: Heart Failure Exacerbation</div>
+              <div>&gt; Base Retrieval Score: 0.72 | Section Coverage: 1.0</div>
+              <div>&gt; Contradiction Burden Penalty: -0.10</div>
+              <div style="margin-top: 8px; color: var(--emerald); font-weight: 700;">
+                &gt; Calibrated Probability: 0.812 (Uncertainty: &plusmn;0.045)
+              </div>
+              <div style="margin-top: 12px; padding: 6px 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; font-size: 11px; color: #cbd5e1;">
+                Disclaimer: Research and evaluation prototype. Not for direct patient care.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 6: BENCHMARKS & EVALUATION (37.0s - 44.4s)
+           ========================================== -->
+      <div class="scene" id="scene-6">
+        <div class="scene-header">
+          <div class="tag-pill amber">Quantitative Evaluation</div>
+          <h2 class="scene-title">1,000-Case Empirical Benchmark</h2>
+          <div class="scene-subtitle">
+            Evaluated on 1,000 synthetic patient cases with ground-truth clinical diagnostic criteria.
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="glass-card metric-card-lg">
+            <div class="metric-val" style="color: var(--emerald);">94.2%</div>
+            <div class="metric-tagline">Top-1 Accuracy</div>
+            <div class="metric-details">
+              Primary clinical diagnosis correctly identified across 1,000 full patient cases.
+            </div>
+          </div>
+
+          <div class="glass-card metric-card-lg">
+            <div class="metric-val" style="color: var(--cyan);">100.0%</div>
+            <div class="metric-tagline">Top-3 Coverage</div>
+            <div class="metric-details">
+              Zero false exclusions. Correct diagnosis ranked in top 3 across all cases.
+            </div>
+          </div>
+
+          <div class="glass-card metric-card-lg">
+            <div class="metric-val" style="color: var(--indigo);">0.9705</div>
+            <div class="metric-tagline">Mean Reciprocal Rank</div>
+            <div class="metric-details">
+              Consistently high ranking quality with minimal diagnostic variance.
+            </div>
+          </div>
+
+          <div class="glass-card metric-card-lg">
+            <div class="metric-val" style="color: var(--amber);">54.9 /s</div>
+            <div class="metric-tagline">Throughput Speed</div>
+            <div class="metric-details">
+              Evaluated 1,000 complete clinical records in just 18.2 seconds.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SCENE 7: CTA & CLOUD RUN DEPLOYMENT (44.4s - 52.0s)
+           ========================================== -->
+      <div class="scene" id="scene-7">
+        <div class="glass-card cta-card">
+          <div class="tag-pill" style="margin-bottom: 12px;">Production Ready on GCP</div>
+          <h2 class="scene-title" style="font-size: 52px;">Clinical Reasoning Engine</h2>
+          <p class="scene-subtitle" style="max-width: 800px; font-size: 18px; margin-bottom: 24px;">
+            Deployed on Google Cloud Run serverless microservices with Secret Manager and React Audit UI.
+          </p>
+
+          <div class="cta-links-row">
+            <div class="link-pill">
+              <div class="link-pill-label">React Audit UI</div>
+              <div class="link-pill-url">Interactive Timeline &amp; Contradictions</div>
+            </div>
+            <div class="link-pill">
+              <div class="link-pill-label">FastAPI Backend</div>
+              <div class="link-pill-url">REST API: /ingest, /chat, /explain</div>
+            </div>
+            <div class="link-pill">
+              <div class="link-pill-label">Google Cloud Run</div>
+              <div class="link-pill-url">Service: clinical-cre (us-central1)</div>
+            </div>
+          </div>
+
+          <div style="font-family: var(--font-mono); font-size: 15px; color: var(--ink-muted);">
+            Author: <span style="color: var(--ink); font-weight: 700;">Shaurya Sharma</span> &bull; Source-Available for Evaluation &amp; Review
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript Frame-Seek Controller -->
+    <script>
+      const s1 = document.getElementById("scene-1");
+      const s2 = document.getElementById("scene-2");
+      const s3 = document.getElementById("scene-3");
+      const s4 = document.getElementById("scene-4");
+      const s5 = document.getElementById("scene-5");
+      const s6 = document.getElementById("scene-6");
+      const s7 = document.getElementById("scene-7");
+      const timecode = document.getElementById("timecode");
+
+      const scenes = [s1, s2, s3, s4, s5, s6, s7];
+      const sceneDur = 7.43;
+
+      function easeOutCubic(x) {
+        return 1 - Math.pow(1 - x, 3);
+      }
+
+      window.seek = function(t) {
+        timecode.innerText = `${t.toFixed(1)}s / 52.0s`;
+
+        const curSceneIdx = Math.min(Math.floor(t / sceneDur), scenes.length - 1);
+        const relT = t - curSceneIdx * sceneDur;
+
+        scenes.forEach((sc, idx) => {
+          if (idx !== curSceneIdx) {
+            sc.style.display = "none";
+            sc.style.opacity = 0;
+            return;
+          }
+
+          sc.style.display = "flex";
+
+          let op = 1.0;
+          let scale = 1.0;
+          if (relT < 0.35) {
+            const p = easeOutCubic(relT / 0.35);
+            op = p;
+            scale = 0.96 + 0.04 * p;
+          } else if (relT > (sceneDur - 0.35) && idx < scenes.length - 1) {
+            const p = (relT - (sceneDur - 0.35)) / 0.35;
+            op = 1.0 - p;
+            scale = 1.0 - 0.03 * p;
+          }
+
+          sc.style.opacity = op;
+          sc.style.transform = `scale(${scale})`;
+        });
+      };
+
+      // Initial frame 0
+      window.seek(0);
+    </script>
+  </body>
+</html>
